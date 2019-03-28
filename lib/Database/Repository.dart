@@ -77,8 +77,8 @@ class Repository {
     database.updateProjectTask(projectTask);
   }
 
-  Future<List<ProjectTask>> getProjects() async {
-    return database.getProjectTasks();
+  Future<List<Project>> getProjects() async {
+    return database.getProjects();
   }
 
   Future updateProject(Project project) async {

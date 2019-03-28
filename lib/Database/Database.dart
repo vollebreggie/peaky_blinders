@@ -81,7 +81,7 @@ class ProjectTaskDatabase {
     var db = await _getDb();
     await db.transaction((txn) async {
       await txn.rawInsert(
-          'INSERT INTO ProjectTask (${ProjectTask.db_title}, ${ProjectTask.db_description}) VALUES("${project.title}", "${project.description}")');
+          'INSERT INTO Project (title, description) VALUES("${project.title}", "${project.description}")');
     });
   }
 

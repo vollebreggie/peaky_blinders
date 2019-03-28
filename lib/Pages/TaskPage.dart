@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:peaky_blinders/Bloc/ProjectTaskBloc.dart';
 import 'package:peaky_blinders/Database/Repository.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
-import 'package:peaky_blinders/Pages/DetailTaskPage.dart';
 import 'package:peaky_blinders/Pages/NewTaskpage.dart';
 
 class TaskPage extends StatefulWidget {
@@ -15,22 +17,30 @@ class TaskPage extends StatefulWidget {
 
 class _ListPageState extends State<TaskPage> {
   List tasks;
+  final bloc = ProjectTaskBloc();
+  final blocCartItems = ProjectTaskBloc();
 
   @override
   void initState() {
-    tasks = [];
-    Repository.get().getProjectTasks()
-      .then((projectTasks) {
-      setState(() {
-        tasks = projectTasks;
-      });
-    });
-    
+    tasks = bloc.projectTasks;
+    bloc.getCarts();
+
+    // Repository.get().getProjectTasks().then((projectTasks) {
+    //   setState(() {
+    //     tasks = projectTasks;
+    //   });
+    // });
+
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {  
     ListTile makeListTile(ProjectTask task) => ListTile(
           contentPadding:
               EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
@@ -69,10 +79,10 @@ class _ListPageState extends State<TaskPage> {
           trailing:
               Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
           onTap: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => DetailTaskPage(task: task)));
+            // Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: (context) => DetailTaskPage(task: task)));
           },
         );
 
@@ -116,8 +126,3 @@ Future navigateToSubPage(context) async {
   Navigator.push(
       context, MaterialPageRoute(builder: (context) => NewTaskPage()));
 }
-
-
-
-
-

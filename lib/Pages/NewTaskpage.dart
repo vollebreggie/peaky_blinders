@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Database/Repository.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 
 class NewTaskPage extends StatefulWidget {
+
   @override
   _NewTaskState createState() => _NewTaskState();
 }
@@ -111,7 +114,9 @@ class _NewTaskState extends State<NewTaskPage>
                           fontFamily: "Poppins",
                           fontSize: 17,
                           color: Colors.white)),
-                  onPressed: () { SaveProjectTask(context);},
+                  onPressed: () {
+                    SaveProjectTask(context);
+                  },
                   borderSide: BorderSide(
                     color: Colors.white, //Color of the border
                     style: BorderStyle.solid, //Style of the border
@@ -139,6 +144,6 @@ class _NewTaskState extends State<NewTaskPage>
   }
 
   Future navigateBack(context) async {
-  Navigator.pop(context, true);
-}
+    Navigator.pop(context, true);
+  }
 }
