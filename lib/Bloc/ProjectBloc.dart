@@ -6,13 +6,13 @@ import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Database/Repository.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 
-class IncrementBloc implements BlocBase {
+class ProjectBloc implements BlocBase {
   List<Project> _projects;
 
   //
   // Stream to handle the counter
   //
-  StreamController<List<Project>> _projectController = StreamController<List<Project>>();
+  StreamController<List<Project>> _projectController = StreamController<List<Project>>.broadcast();
   StreamSink<List<Project>> get _inProject => _projectController.sink;
   Stream<List<Project>> get outProject => _projectController.stream;
 
@@ -25,7 +25,7 @@ class IncrementBloc implements BlocBase {
   //
   // Constructor
   //
-  IncrementBloc() {
+  ProjectBloc() {
    
     _actionController.stream.listen(_handleLogic);
   }

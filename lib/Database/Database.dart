@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';

@@ -1,14 +1,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
-import 'package:peaky_blinders/Bloc/IncrementBloc.dart';
+import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Database/Repository.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 
 class NewProjectPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final IncrementBloc bloc = BlocProvider.of<IncrementBloc>(context);
+    final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
 
     return Scaffold(
       appBar: AppBar(title: Text('Stream version of the Counter App')),
@@ -18,13 +18,13 @@ class NewProjectPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
-          SaveProject(context, bloc);
+          saveProject(context, bloc);
         },
       ),
     );
   }
 
-void SaveProject(BuildContext context, IncrementBloc bloc) {
+void saveProject(BuildContext context, ProjectBloc bloc) {
 
     Project project = new Project(
         id: 1,

@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
+import 'package:peaky_blinders/Pages/TaskPage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
 /// An indicator showing the currently selected page of a PageController
 class DotsIndicator extends AnimatedWidget {
@@ -74,6 +77,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
+  Future getRequest() async {
+    var url = "http://192.168.178.20:45455/api/Value";
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      var jsonResponse = convert.jsonDecode(response.body);
+      var itemCount = jsonResponse['totalItems'];
+      print("Number of books about http: $itemCount.");
+    } else {
+      print("Request failed with status: ${response.statusCode}.");
+    }
+  }
+
   final _controller = new PageController();
 
   static const _kDuration = const Duration(milliseconds: 300);
@@ -84,12 +99,9 @@ class MyHomePageState extends State<MyHomePage> {
 
   final List<Widget> _pages = <Widget>[
     new ConstrainedBox(
-      constraints: const BoxConstraints.expand(),
-      child:
-          new FlutterLogo(style: FlutterLogoStyle.stacked, colors: Colors.red),
-    ),
+        constraints: const BoxConstraints.expand(), child: new TaskPage()),
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(), child: new CounterPage()),
+        constraints: const BoxConstraints.expand(), child: new ProjectPage()),
     new ConstrainedBox(
       constraints: const BoxConstraints.expand(),
       child: new FlutterLogo(
