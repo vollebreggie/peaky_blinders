@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:peaky_blinders/Models/Token.dart';
+
 User clientFromJson(String str) {
   final jsonData = json.decode(str);
   return User.fromMap(jsonData);
@@ -14,7 +16,7 @@ class User {
   int id;
   String firstName;
   String lastName;
-
+  Token token;
 
   User({
     this.id,

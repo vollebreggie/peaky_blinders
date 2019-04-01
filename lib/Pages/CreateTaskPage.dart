@@ -2,22 +2,32 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Database/Repository.dart';
+import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 
-class NewTaskPage extends StatefulWidget {
+class CreateTaskPage extends StatefulWidget {
+  Project project;
+  CreateTaskPage(Project project){
+    if(project != null)
+    {
+      this.project = project;
+    }
+  }
+
 
   @override
-  _NewTaskState createState() => _NewTaskState();
+  _CreateTaskState createState() => _CreateTaskState();
 }
 
-class _NewTaskState extends State<NewTaskPage>
-    with SingleTickerProviderStateMixin {
+class _CreateTaskState extends State<CreateTaskPage> with SingleTickerProviderStateMixin {
   AnimationController _controller;
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   Animation _animation;
-
+  List<String> _locations = ['A', 'B', 'C', 'D']; // Option 2
+  String _selectedLocation; // Option 2
   FocusNode _focusNode = FocusNode();
+
 
   @override
   void initState() {
@@ -53,7 +63,8 @@ class _NewTaskState extends State<NewTaskPage>
       backgroundColor: Colors.black,
       resizeToAvoidBottomPadding: false, // this avoids the overflow error
       appBar: AppBar(
-        title: Text('Create Task'),
+        backgroundColor: Colors.transparent,
+
       ),
       body: new InkWell(
         // to dismiss the keyboard when the user tabs out of the TextField
@@ -69,7 +80,7 @@ class _NewTaskState extends State<NewTaskPage>
               TextFormField(
                 controller: titleController,
                 decoration: InputDecoration(
-                  labelText: 'Title',
+                  labelText: 'Task Title',
                 ),
                 focusNode: _focusNode,
               ),
@@ -101,6 +112,22 @@ class _NewTaskState extends State<NewTaskPage>
                 ),
               ),
               new Padding(padding: EdgeInsets.only(top: 20.0)),
+              DropdownButton(
+                hint: Text(
+                    'Please choose a location'), // Not necessary for Option 1
+                value: _selectedLocation,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedLocation = newValue;
+                  });
+                },
+                items: _locations.map((location) {
+                  return DropdownMenuItem(
+                    child: new Text(location),
+                    value: location,
+                  );
+                }).toList(),
+              ),
               new SizedBox(
                 width: 300,
                 height: 50.0,
@@ -123,7 +150,7 @@ class _NewTaskState extends State<NewTaskPage>
                     width: 0.8, //width of the border
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

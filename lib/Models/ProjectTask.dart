@@ -5,15 +5,17 @@ class ProjectTask {
   static final db_title = "title";
   static final db_description = "description";
   static final db_started = "started";
+  static final db_enddate = "enddate";
   static final db_completed = "completed";
 
   int id;
-  String title, description, started, completed;
+  String title, description, started, enddate, completed;
   ProjectTask({
     @required this.id,
     @required this.title,
     @required this.description,
     this.started,
+    this.enddate,
     this.completed,
   });
 
@@ -33,6 +35,7 @@ class ProjectTask {
       db_description: description,
       db_id: id,
       db_started: started,
+      db_enddate: enddate,
       db_completed: completed,
     };
   }

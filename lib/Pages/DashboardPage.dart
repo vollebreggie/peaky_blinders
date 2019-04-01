@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:peaky_blinders/Pages/ProjectPage.dart';
-import 'package:peaky_blinders/Pages/TaskPage.dart';
+import 'package:peaky_blinders/Pages/ProjectListPage.dart';
+import 'package:peaky_blinders/Pages/TaskListPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
@@ -99,9 +99,9 @@ class MyHomePageState extends State<MyHomePage> {
 
   final List<Widget> _pages = <Widget>[
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(), child: new TaskPage()),
+        constraints: const BoxConstraints.expand(), child: new TaskListPage()),
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(), child: new ProjectPage()),
+        constraints: const BoxConstraints.expand(), child: new ProjectListPage()),
     new ConstrainedBox(
       constraints: const BoxConstraints.expand(),
       child: new FlutterLogo(

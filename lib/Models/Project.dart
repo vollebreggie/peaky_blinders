@@ -6,7 +6,7 @@ class Project {
   static final db_description = "description";
 
   int id;
-  String title, description, started, completed;
+  String title, description, started, enddate, completed;
   Project({
     @required this.id,
     @required this.title,
