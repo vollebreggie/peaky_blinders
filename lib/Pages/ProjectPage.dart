@@ -15,62 +15,91 @@ class ProjectPage extends StatelessWidget {
     final ProjectTaskBloc taskBloc = BlocProvider.of<ProjectTaskBloc>(context);
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: new TextFormField(
-          textAlign: TextAlign.left,
-          decoration: new InputDecoration(
-            border: InputBorder.none,
-            hintText: 'Project title',
-            fillColor: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-      ),
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height *
+              0.4), // here the desired height
+          child: AppBar(
+            flexibleSpace: Stack(children: <Widget>[
+              new Image.asset(
+                "assets/splashscreen.png",
+                fit: BoxFit.fill,
+                height: MediaQuery.of(context).size.height * 0.4,
+                width: MediaQuery.of(context).size.width,
+              ),
+              new Align(
+                alignment: FractionalOffset.bottomLeft,
+                child: Container(
+                  padding: EdgeInsets.all(20.0),
+                  child: TextFormField(
+                      initialValue: "someText",
+                      textAlign: TextAlign.left,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Username',
+                      ),
+                      style:
+                          new TextStyle(fontSize: 25.0, color: Colors.white)),
+                ),
+              ),
+            ]),
+            backgroundColor: Colors.transparent,
+          )),
       body: Center(
         child: SingleChildScrollView(
           child: new Column(
             children: [
               new Container(
                   height: MediaQuery.of(context).size.height,
-                  decoration: new BoxDecoration(
-                    image: new DecorationImage(
-                      image: new AssetImage("assets/splashscreen.png"),
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+                  color: Colors.white,
                   child: new Column(children: [
-                    new CarouselSlider(
-                      height: 200.0,
-                      items: [
-                        "splashscreen.jpg",
-                        "profile.jpg",
-                        "map.png",
-                        "dashboard.jpg"
-                      ].map((image) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Container(
-                                decoration: new BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(25.0)),
-                              image: new DecorationImage(
-                                image: new AssetImage("assets/$image"),
-                                fit: BoxFit.fill,
-                              ),
-                            ));
-                          },
-                        );
-                      }).toList(),
-                    ),
+                    // new CarouselSlider(
+                    //   aspectRatio: 16 / 9,
+                    //   viewportFraction: 0.8,
+                    //   initialPage: 0,
+                    //   enableInfiniteScroll: true,
+                    //   reverse: false,
+                    //   autoPlay: true,
+                    //   autoPlayInterval: Duration(seconds: 3),
+                    //   autoPlayAnimationDuration: Duration(milliseconds: 800),
+                    //   pauseAutoPlayOnTouch: Duration(seconds: 10),
+                    //   enlargeCenterPage: true,
+                    //   scrollDirection: Axis.horizontal,
+                    //   height: 200.0,
+                    //   items: [
+                    //     "splashscreen.jpg",
+                    //     "profile.jpg",
+                    //     "map.png",
+                    //     "dashboard.jpg"
+                    //   ].map((image) {
+                    //     return Builder(
+                    //       builder: (BuildContext context) {
+                    //         return Container(
+                    //             width: MediaQuery.of(context).size.width,
+                    //             margin: EdgeInsets.symmetric(horizontal: 5.0),
+                    //             decoration: new BoxDecoration(
+                    //               borderRadius:
+                    //                   BorderRadius.all(Radius.circular(25.0)),
+                    //               image: new DecorationImage(
+                    //                 image: new AssetImage("assets/$image"),
+                    //                 fit: BoxFit.fill,
+                    //               ),
+                    //             ));
+                    //       },
+                    //     );
+                    //   }).toList(),
+                    // ),
                     new Card(
-                      elevation: 8.0,
-                      margin: new EdgeInsets.symmetric(
-                          horizontal: 5.0, vertical: 6.0),
-                      color: Color.fromRGBO(209, 224, 224, 0.4),
+                      //elevation: 8.0,
+                      // margin: new EdgeInsets.symmetric(
+                      //     horizontal: 5.0, vertical: 6.0),
+                      color: Colors.grey,
                       child: Container(
+                        padding: EdgeInsets.only(bottom: 0),
+
                         height: 200,
-                        padding: EdgeInsets.all(10.0),
+                        width: MediaQuery.of(context).size.width,
+                        //padding: EdgeInsets.all(10.0),
                         child: new ConstrainedBox(
                           constraints: BoxConstraints(
                             maxHeight: 200.0,
