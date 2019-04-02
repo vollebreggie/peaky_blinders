@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/Token.dart';
+import 'package:peaky_blinders/Models/User.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -48,9 +50,51 @@ class ProjectTaskDatabase {
 
       await db.execute(
           'CREATE TABLE Project (id INTEGER PRIMARY KEY, title TEXT, description TEXT)');
+
+      await db.execute(
+          'CREATE TABLE User (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT, token TEXT, username TEXT, password Text)');
+
+      await db.execute(
+          'CREATE TABLE Token (id INTEGER PRIMARY KEY, auth_token TEXT, expires_in DATETIME)');
     });
 
     didInit = true;
+  }
+
+//##################TOKEN###############################
+  /// Get a token 
+  Future<Token> getToken() async {
+    var db = await _getDb();
+    var result = await db.rawQuery('SELECT * FROM Token');
+    if (result.length == 0) return null;
+    return new Token.fromMap(result[0]);
+  }
+
+  /// Inserts or replaces the user.
+  Future updateToken(Token token) async {
+    var db = await _getDb();
+    await db.transaction((txn) async {
+      await txn.rawInsert(
+          'INSERT INTO Token (auth_token, expires_in) VALUES("${token.auth_token}", "${token.expires_in}")');
+    });
+  }
+
+//################USER##################################
+  /// Get a user
+  Future<User> getUser() async {
+    var db = await _getDb();
+    var result = await db.rawQuery('SELECT * FROM User');
+    if (result.length == 0) return null;
+    return new User.fromMap(result[0]);
+  }
+
+  /// Inserts or replaces the user.
+  Future updateUser(User user) async {
+    var db = await _getDb();
+    await db.transaction((txn) async {
+      await txn.rawInsert(
+          'INSERT INTO User (firstname, lastname) VALUES("${user.firstName}", "${user.lastName}")');
+    });
   }
 
 //##################PROJECT############################

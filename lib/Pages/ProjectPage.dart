@@ -71,7 +71,7 @@ class _ProjectState extends State<ProjectPage> {
                     child: LinearProgressIndicator(
                         backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
                         value: 0.2,
-                        valueColor: AlwaysStoppedAnimation(Colors.greenAccent)),
+                        valueColor: AlwaysStoppedAnimation(Colors.green)),
                   ),
                 )
               ]),
@@ -206,6 +206,44 @@ class _ProjectState extends State<ProjectPage> {
                           ),
                         ),
                       ),
+                      Card(
+                          color: Color.fromRGBO(60, 65, 74, 1),
+                          child: new Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                new Container(
+                                  alignment: Alignment.centerLeft,
+                                  margin: new EdgeInsets.only(
+                                      top: 5.0, left: 15.0, bottom: 5),
+                                  child: new Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: new Theme(
+                                        data: Theme.of(context).copyWith(
+                                          canvasColor:
+                                              Color.fromRGBO(60, 65, 74, 1),
+                                        ),
+                                        child: new Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: <Widget>[
+                                              new ClipRRect(
+                                                borderRadius:
+                                                    new BorderRadius.circular(
+                                                        8.0),
+                                                child: Image.asset(
+                                                  "assets/splashscreen.png",
+                                                  height: 50.0,
+                                                  width: 50.0,
+                                                  fit: BoxFit.fill,
+                                                ),
+                                              ),
+                                              Icon(Icons.add_box,
+                                                  size: 60,
+                                                  color: Colors.white70),
+                                            ])),
+                                  ),
+                                ),
+                              ]))
                     ])),
                 StreamBuilder<List<ProjectTask>>(
                     stream: taskBloc.outProjectTask,
@@ -231,6 +269,7 @@ class _ProjectState extends State<ProjectPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
         child: const Icon(Icons.add),
         onPressed: () {
           saveProject(context, projectBloc);
@@ -251,7 +290,8 @@ class _ProjectState extends State<ProjectPage> {
         MaterialPageRoute(builder: (context) => CreateTaskPage(project)));
   }
 
-  ListTile makeListTile(ProjectTask projectTask, BuildContext context) => ListTile(
+  ListTile makeListTile(ProjectTask projectTask, BuildContext context) =>
+      ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         leading: Container(
           padding: EdgeInsets.only(right: 12.0, top: 5),
@@ -302,7 +342,7 @@ class _ProjectState extends State<ProjectPage> {
         elevation: 8.0,
         margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
         child: Container(
-          decoration: BoxDecoration(color: Color.fromRGBO(66, 75, 94, 1)),
+          decoration: BoxDecoration(color: Color.fromRGBO(59, 66, 84, 1)),
           child: makeListTile(projectTask, context),
         ),
       );

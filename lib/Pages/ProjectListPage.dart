@@ -12,7 +12,7 @@ class ProjectListPage extends StatelessWidget {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
 
     return Scaffold(
-      backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
+      backgroundColor: Color.fromRGBO(60, 65, 74, 1),
       body: Center(
         child: StreamBuilder<List<Project>>(
             stream: bloc.outProject,
@@ -21,7 +21,6 @@ class ProjectListPage extends StatelessWidget {
                 (BuildContext context, AsyncSnapshot<List<Project>> snapshot) {
               bloc.fetchProject.add(null);
               return Container(
-                // decoration: BoxDecoration(color: Color.fromRGBO(58, 66, 86, 1.0)),
                 child: ListView.builder(
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
@@ -34,6 +33,7 @@ class ProjectListPage extends StatelessWidget {
             }),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
         child: const Icon(Icons.add),
         onPressed: () {
           navigateToSubPage(context);

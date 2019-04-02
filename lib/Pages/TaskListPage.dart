@@ -11,7 +11,7 @@ class TaskListPage extends StatelessWidget {
     final ProjectTaskBloc bloc = BlocProvider.of<ProjectTaskBloc>(context);
 
     return Scaffold(
-      backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
+      backgroundColor: Color.fromRGBO(60, 65, 74, 1),
       body: Center(
         child: StreamBuilder<List<ProjectTask>>(
             stream: bloc.outProjectTask,
@@ -33,6 +33,7 @@ class TaskListPage extends StatelessWidget {
             }),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
         child: const Icon(Icons.add),
         onPressed: () {
           navigateToCreateTaskPage(context);
@@ -102,7 +103,7 @@ class TaskListPage extends StatelessWidget {
         elevation: 8.0,
         margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
         child: Container(
-          decoration: BoxDecoration(color: Color.fromRGBO(66, 75, 94, 1)),
+          decoration: BoxDecoration(color: Color.fromRGBO(59, 66, 84, 1)),
           child: makeListTile(projectTask, context),
         ),
       );

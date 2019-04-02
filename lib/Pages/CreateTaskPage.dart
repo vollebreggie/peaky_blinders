@@ -7,46 +7,30 @@ import 'package:peaky_blinders/Models/ProjectTask.dart';
 
 class CreateTaskPage extends StatefulWidget {
   Project project;
-  CreateTaskPage(Project project){
-    if(project != null)
-    {
+  CreateTaskPage(Project project) {
+    if (project != null) {
       this.project = project;
     }
   }
-
 
   @override
   _CreateTaskState createState() => _CreateTaskState();
 }
 
-class _CreateTaskState extends State<CreateTaskPage> with SingleTickerProviderStateMixin {
+class _CreateTaskState extends State<CreateTaskPage>
+    with SingleTickerProviderStateMixin {
   AnimationController _controller;
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
-  Animation _animation;
-  List<String> _locations = ['A', 'B', 'C', 'D']; // Option 2
-  String _selectedLocation; // Option 2
+  List<String> _priorities = ['Trivial', 'Valuable', 'Necessary', 'Paramount'];
+  String _selectedPriority;
+  List<String> _points = ['1', '2', '4', '8', '12', '18', '32', '45'];
+  String _selectedPoints;
   FocusNode _focusNode = FocusNode();
-
 
   @override
   void initState() {
     super.initState();
-
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
-    _animation = Tween(begin: 200.0, end: 50.0).animate(_controller)
-      ..addListener(() {
-        setState(() {});
-      });
-
-    _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    });
   }
 
   @override
@@ -60,100 +44,259 @@ class _CreateTaskState extends State<CreateTaskPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      resizeToAvoidBottomPadding: false, // this avoids the overflow error
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-
-      ),
-      body: new InkWell(
-        // to dismiss the keyboard when the user tabs out of the TextField
-        splashColor: Colors.transparent,
-        onTap: () {
-          FocusScope.of(context).requestFocus(FocusNode());
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: <Widget>[
-              //SizedBox(height: _animation.value),
-              TextFormField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Task Title',
+      backgroundColor: Color.fromRGBO(60, 65, 74, 1),
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              expandedHeight: 200.0,
+              floating: false,
+              pinned: true,
+              flexibleSpace: Stack(children: <Widget>[
+                new Image.asset(
+                  "assets/splashscreen.png",
+                  fit: BoxFit.fill,
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  width: MediaQuery.of(context).size.width,
                 ),
-                focusNode: _focusNode,
-              ),
-              Container(
-                height: 200,
-                color: Color(0xffeeeeee),
-                padding: EdgeInsets.all(10.0),
-                child: new ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: 200.0,
+                new Align(
+                  alignment: FractionalOffset.bottomLeft,
+                  child: Container(
+                    padding: EdgeInsets.only(left: 50, bottom: 20.0),
+                    child: TextFormField(
+                        initialValue: "Project: Iron man",
+                        cursorColor: Colors.white,
+                        textAlign: TextAlign.left,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Project Name',
+                        ),
+                        style:
+                            new TextStyle(fontSize: 25.0, color: Colors.white)),
                   ),
-                  child: new Scrollbar(
-                    child: new SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      reverse: true,
-                      child: SizedBox(
-                        height: 190.0,
-                        child: new TextField(
-                          controller: descriptionController,
-                          maxLines: 100,
-                          decoration: new InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Add your text here',
+                ),
+                new Align(
+                  alignment: FractionalOffset.bottomLeft,
+                  child: Container(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: LinearProgressIndicator(
+                        backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
+                        value: 0.2,
+                        valueColor: AlwaysStoppedAnimation(Colors.greenAccent)),
+                  ),
+                )
+              ]),
+              backgroundColor: Colors.transparent,
+            ),
+          ];
+        },
+        body: Center(
+          child: SingleChildScrollView(
+            child: new Column(
+              children: [
+                Card(
+                    color: Color.fromRGBO(60, 65, 74, 1),
+                    child: new Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          new Container(
+                            alignment: Alignment.centerLeft,
+                            margin: new EdgeInsets.only(
+                                top: 5.0, left: 15.0, bottom: 5),
+                            child: new Container(
+                              alignment: Alignment.centerLeft,
+                              child: new Theme(
+                                  data: Theme.of(context).copyWith(
+                                    canvasColor: Color.fromRGBO(60, 65, 74, 1),
+                                  ),
+                                  child: new Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        new Container(
+                                            alignment: Alignment.centerLeft,
+                                            margin: new EdgeInsets.only(
+                                                right: 15.0),
+                                            child: Icon(Icons.low_priority,
+                                                color: Colors.white70)),
+                                        new DropdownButton(
+                                          hint: Text('Priority',
+                                              style: new TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 15.0)),
+                                          value: _selectedPriority,
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              _selectedPriority = newValue;
+                                            });
+                                          },
+                                          items: _priorities.map((location) {
+                                            return DropdownMenuItem(
+                                              child: new Text(location,
+                                                  style: new TextStyle(
+                                                      color: Colors.white70)),
+                                              value: location,
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ])),
+                            ),
+                          ),
+                          new Container(
+                            margin: new EdgeInsets.only(
+                                top: 10.0, right: 60, bottom: 5),
+                            child: new Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  new Container(
+                                      alignment: Alignment.centerLeft,
+                                      margin: new EdgeInsets.only(right: 5.0),
+                                      child: Icon(Icons.show_chart,
+                                          color: Colors.white70)),
+                                  new Theme(
+                                    data: Theme.of(context).copyWith(
+                                      canvasColor:
+                                          Color.fromRGBO(60, 65, 74, 1),
+                                    ),
+                                    child: new DropdownButton(
+                                      hint: Text('Points',
+                                          style: new TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 15.0)),
+                                      value: _selectedPoints,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          _selectedPoints = newValue;
+                                        });
+                                      },
+                                      items: _points.map((location) {
+                                        return DropdownMenuItem(
+                                          child: new Text(location,
+                                              style: new TextStyle(
+                                                  color: Colors.white70)),
+                                          value: location,
+                                        );
+                                      }).toList(),
+                                    ),
+                                  )
+                                ]),
+                          ),
+                        ])),
+                Card(
+                  color: Color.fromRGBO(60, 65, 74, 1),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const ListTile(
+                        leading: Icon(Icons.description, color: Colors.white70),
+                        title: Text(
+                          'Title',
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontStyle: FontStyle.normal),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.only(bottom: 0, top: 0),
+                        height: 40,
+                        width: MediaQuery.of(context).size.width,
+                        //padding: EdgeInsets.all(10.0),
+                        child: new ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: 40.0,
+                          ),
+                          child: new Scrollbar(
+                            child: new SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              reverse: true,
+                              child: SizedBox(
+                                height: 40.0,
+                                child: new TextField(
+                                  cursorColor: Colors.white,
+                                  textAlign: TextAlign.left,
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontStyle: FontStyle.normal),
+                                  decoration: new InputDecoration(
+                                    border: InputBorder.none,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-              new Padding(padding: EdgeInsets.only(top: 20.0)),
-              DropdownButton(
-                hint: Text(
-                    'Please choose a location'), // Not necessary for Option 1
-                value: _selectedLocation,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedLocation = newValue;
-                  });
-                },
-                items: _locations.map((location) {
-                  return DropdownMenuItem(
-                    child: new Text(location),
-                    value: location,
-                  );
-                }).toList(),
-              ),
-              new SizedBox(
-                width: 300,
-                height: 50.0,
-                child: new OutlineButton(
-                  splashColor: Colors.grey,
-                  color: Colors.white,
-                  shape: new RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(25.0)),
-                  child: Text("Create Task",
-                      style: TextStyle(
-                          fontFamily: "Poppins",
-                          fontSize: 17,
-                          color: Colors.white)),
-                  onPressed: () {
-                    SaveProjectTask(context);
-                  },
-                  borderSide: BorderSide(
-                    color: Colors.white, //Color of the border
-                    style: BorderStyle.solid, //Style of the border
-                    width: 0.8, //width of the border
-                  ),
-                ),
-              ),
-            ],
+                new Container(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    color: Color.fromRGBO(60, 65, 74, 1),
+                    child: new Column(children: [
+                      Center(
+                        child: Card(
+                          color: Color.fromRGBO(60, 65, 74, 1),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const ListTile(
+                                leading: Icon(Icons.description,
+                                    color: Colors.white70),
+                                title: Text(
+                                  'Description',
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontStyle: FontStyle.normal),
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(bottom: 0, top: 0),
+                                height: 150,
+                                width: MediaQuery.of(context).size.width,
+                                //padding: EdgeInsets.all(10.0),
+                                child: new ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxHeight: 150.0,
+                                  ),
+                                  child: new Scrollbar(
+                                    child: new SingleChildScrollView(
+                                      scrollDirection: Axis.vertical,
+                                      reverse: true,
+                                      child: SizedBox(
+                                        height: 150.0,
+                                        child: new TextField(
+                                          cursorColor: Colors.white,
+                                          textAlign: TextAlign.left,
+                                          maxLines: 100,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontStyle: FontStyle.normal),
+                                          decoration: new InputDecoration(
+                                            border: InputBorder.none,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ])),
+              ],
+            ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.save),
+        onPressed: () {
+          SaveProjectTask(context);
+        },
       ),
     );
   }

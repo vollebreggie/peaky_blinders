@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
 import 'package:peaky_blinders/Database/Database.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/Token.dart';
+import 'package:peaky_blinders/Models/User.dart';
 
 /// A class similar to http.Response but instead of a String describing the body
 /// it already contains the parsed Dart-Object
@@ -79,6 +78,14 @@ class Repository {
 
   Future<List<Project>> getProjects() async {
     return database.getProjects();
+  }
+
+  Future<Token> getToken() async {
+    return database.getToken();
+  }
+
+  Future<User> getUser() async {
+    return database.getUser();
   }
 
   Future updateProject(Project project) async {
