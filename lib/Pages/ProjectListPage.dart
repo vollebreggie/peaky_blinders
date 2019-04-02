@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
+import 'package:peaky_blinders/Pages/CreateTaskPage.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
+import 'package:peaky_blinders/Pages/Taskpage.dart';
 
 class ProjectListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
-    
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
       body: Center(
@@ -47,6 +49,19 @@ class ProjectListPage extends StatelessWidget {
 
   ListTile makeListTile(Project project, BuildContext context) => ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+        leading: Container(
+          padding: EdgeInsets.only(right: 12.0, top: 5),
+          decoration: new BoxDecoration(
+              border: new Border(
+                  right: new BorderSide(width: 1.0, color: Colors.white24))),
+          child: Text(
+            "209",
+            style: TextStyle(
+                color: Colors.white70,
+                fontSize: 30,
+                fontWeight: FontWeight.bold),
+          ),
+        ),
         title: Text(
           "Project: Iron man",
           style: TextStyle(
@@ -83,11 +98,13 @@ class ProjectListPage extends StatelessWidget {
   Card makeCard(Project project, BuildContext context) => Card(
         elevation: 8.0,
         margin: new EdgeInsets.symmetric(horizontal: 5.0, vertical: 6.0),
-        shape: RoundedRectangleBorder(side: BorderSide(width: 0.1, color: Colors.green), borderRadius: BorderRadius.all(Radius.circular(25.0))),
+        shape: RoundedRectangleBorder(
+            side: BorderSide(width: 0.1, color: Colors.green),
+            borderRadius: BorderRadius.all(Radius.circular(5.0))),
         color: Colors.transparent,
         child: Container(
           decoration: new BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(25.0)),
+            borderRadius: BorderRadius.all(Radius.circular(5.0)),
             image: new DecorationImage(
               image: new AssetImage("assets/ironman.png"),
               fit: BoxFit.fill,
@@ -96,4 +113,14 @@ class ProjectListPage extends StatelessWidget {
           child: makeListTile(project, context),
         ),
       );
+
+  Future navigateToCreateTaskPage(context) async {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CreateTaskPage(null)));
+  }
+
+  Future navigateToTaskPage(context) async {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => TaskPage()));
+  }
 }
