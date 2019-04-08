@@ -1,9 +1,12 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:peaky_blinders/Pages/PersonalPage.dart';
 import 'package:peaky_blinders/Pages/ProjectListPage.dart';
 import 'package:peaky_blinders/Pages/TaskListPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
+
+import 'package:peaky_blinders/Pages/chart.dart';
 
 /// An indicator showing the currently selected page of a PageController
 class DotsIndicator extends AnimatedWidget {
@@ -101,11 +104,11 @@ class MyHomePageState extends State<MyHomePage> {
     new ConstrainedBox(
         constraints: const BoxConstraints.expand(), child: new TaskListPage()),
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(), child: new ProjectListPage()),
+        constraints: const BoxConstraints.expand(),
+        child: new ProjectListPage()),
     new ConstrainedBox(
       constraints: const BoxConstraints.expand(),
-      child: new FlutterLogo(
-          style: FlutterLogoStyle.horizontal, colors: Colors.green),
+      child: new PersonalPage(),
     ),
   ];
 

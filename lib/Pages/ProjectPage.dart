@@ -14,13 +14,8 @@ class ProjectPage extends StatefulWidget {
 }
 
 class _ProjectState extends State<ProjectPage> {
-  List<String> _locations = [
-    'Trivial',
-    'Valuable',
-    'Necessary',
-    'Paramount'
-  ]; // Option 2
-  String _selectedLocation; // Option 2
+  List<String> _locations = ['Trivial', 'Valuable', 'Necessary', 'Paramount'];
+  String _selectedLocation;
 
   @override
   void initState() {
@@ -41,18 +36,19 @@ class _ProjectState extends State<ProjectPage> {
               expandedHeight: 200.0,
               floating: false,
               pinned: true,
-              flexibleSpace: Stack(children: <Widget>[
-                new Image.asset(
-                  "assets/splashscreen.png",
-                  fit: BoxFit.fill,
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  width: MediaQuery.of(context).size.width,
-                ),
-                new Align(
-                  alignment: FractionalOffset.bottomLeft,
-                  child: Container(
-                    padding: EdgeInsets.only(left: 50, bottom: 20.0),
-                    child: TextFormField(
+              flexibleSpace: Stack(
+                children: <Widget>[
+                  new Image.asset(
+                    "assets/splashscreen.png",
+                    fit: BoxFit.fill,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    width: MediaQuery.of(context).size.width,
+                  ),
+                  new Align(
+                    alignment: FractionalOffset.bottomLeft,
+                    child: Container(
+                      padding: EdgeInsets.only(left: 50, bottom: 20.0),
+                      child: TextFormField(
                         initialValue: "Project: Iron man",
                         cursorColor: Colors.white,
                         textAlign: TextAlign.left,
@@ -61,20 +57,23 @@ class _ProjectState extends State<ProjectPage> {
                           hintText: 'Project Name',
                         ),
                         style:
-                            new TextStyle(fontSize: 25.0, color: Colors.white)),
+                            new TextStyle(fontSize: 25.0, color: Colors.white),
+                      ),
+                    ),
                   ),
-                ),
-                new Align(
-                  alignment: FractionalOffset.bottomLeft,
-                  child: Container(
-                    padding: EdgeInsets.only(top: 20.0),
-                    child: LinearProgressIndicator(
+                  new Align(
+                    alignment: FractionalOffset.bottomLeft,
+                    child: Container(
+                      padding: EdgeInsets.only(top: 20.0),
+                      child: LinearProgressIndicator(
                         backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
                         value: 0.2,
-                        valueColor: AlwaysStoppedAnimation(Colors.green)),
-                  ),
-                )
-              ]),
+                        valueColor: AlwaysStoppedAnimation(Colors.green),
+                      ),
+                    ),
+                  )
+                ],
+              ),
               backgroundColor: Colors.transparent,
             ),
           ];
@@ -84,77 +83,79 @@ class _ProjectState extends State<ProjectPage> {
             child: new Column(
               children: [
                 Card(
-                    color: Color.fromRGBO(60, 65, 74, 1),
-                    child: new Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          new Container(
-                            alignment: Alignment.centerLeft,
-                            margin: new EdgeInsets.only(
-                                top: 5.0, left: 15.0, bottom: 5),
-                            child: new Container(
-                              alignment: Alignment.centerLeft,
-                              child: new Theme(
-                                  data: Theme.of(context).copyWith(
-                                    canvasColor: Color.fromRGBO(60, 65, 74, 1),
-                                  ),
-                                  child: new Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        new Container(
-                                            alignment: Alignment.centerLeft,
-                                            margin: new EdgeInsets.only(
-                                                right: 15.0),
-                                            child: Icon(Icons.low_priority,
-                                                color: Colors.white70)),
-                                        new DropdownButton(
-                                          hint: Text('Priority',
-                                              style: new TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 15.0)),
-                                          value: _selectedLocation,
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              _selectedLocation = newValue;
-                                            });
-                                          },
-                                          items: _locations.map((location) {
-                                            return DropdownMenuItem(
-                                              child: new Text(location,
-                                                  style: new TextStyle(
-                                                      color: Colors.white70)),
-                                              value: location,
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ])),
+                  color: Color.fromRGBO(60, 65, 74, 1),
+                  child: new Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      new Container(
+                        alignment: Alignment.centerLeft,
+                        margin: new EdgeInsets.only(
+                            top: 5.0, left: 15.0, bottom: 5),
+                        child: new Container(
+                          alignment: Alignment.centerLeft,
+                          child: new Theme(
+                            data: Theme.of(context).copyWith(
+                              canvasColor: Color.fromRGBO(60, 65, 74, 1),
+                            ),
+                            child: new Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                new Container(
+                                    alignment: Alignment.centerLeft,
+                                    margin: new EdgeInsets.only(right: 15.0),
+                                    child: Icon(Icons.low_priority,
+                                        color: Colors.white70)),
+                                new DropdownButton(
+                                  hint: Text('Priority',
+                                      style: new TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 15.0)),
+                                  value: _selectedLocation,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _selectedLocation = newValue;
+                                    });
+                                  },
+                                  items: _locations.map((location) {
+                                    return DropdownMenuItem(
+                                      child: new Text(location,
+                                          style: new TextStyle(
+                                              color: Colors.white70)),
+                                      value: location,
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ),
                           ),
-                          new Container(
-                            margin: new EdgeInsets.only(
-                                top: 10.0, right: 60, bottom: 5),
-                            child: new Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  new Container(
-                                      alignment: Alignment.centerLeft,
-                                      margin: new EdgeInsets.only(right: 5.0),
-                                      child: Icon(Icons.show_chart,
-                                          color: Colors.white70)),
-                                  new Text(
-                                    "Points: 43",
-                                    style: new TextStyle(
-                                        color: Colors.white70, fontSize: 15.0),
-                                  ),
-                                ]),
-                          ),
-                        ])),
+                        ),
+                      ),
+                      new Container(
+                        margin: new EdgeInsets.only(
+                            top: 10.0, right: 60, bottom: 5),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              new Container(
+                                  alignment: Alignment.centerLeft,
+                                  margin: new EdgeInsets.only(right: 5.0),
+                                  child: Icon(Icons.show_chart,
+                                      color: Colors.white70)),
+                              new Text(
+                                "Points: 43",
+                                style: new TextStyle(
+                                    color: Colors.white70, fontSize: 15.0),
+                              ),
+                            ]),
+                      ),
+                    ],
+                  ),
+                ),
                 new Container(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    color: Color.fromRGBO(60, 65, 74, 1),
-                    child: new Column(children: [
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  color: Color.fromRGBO(60, 65, 74, 1),
+                  child: new Column(
+                    children: [
                       Center(
                         child: Card(
                           color: Color.fromRGBO(60, 65, 74, 1),
@@ -207,62 +208,66 @@ class _ProjectState extends State<ProjectPage> {
                         ),
                       ),
                       Card(
-                          color: Color.fromRGBO(60, 65, 74, 1),
-                          child: new Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                new Container(
-                                  alignment: Alignment.centerLeft,
-                                  margin: new EdgeInsets.only(
-                                      top: 5.0, left: 15.0, bottom: 5),
-                                  child: new Container(
-                                    alignment: Alignment.centerLeft,
-                                    child: new Theme(
-                                        data: Theme.of(context).copyWith(
-                                          canvasColor:
-                                              Color.fromRGBO(60, 65, 74, 1),
+                        color: Color.fromRGBO(60, 65, 74, 1),
+                        child: new Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            new Container(
+                              alignment: Alignment.centerLeft,
+                              margin: new EdgeInsets.only(
+                                  top: 5.0, left: 15.0, bottom: 5),
+                              child: new Container(
+                                alignment: Alignment.centerLeft,
+                                child: new Theme(
+                                  data: Theme.of(context).copyWith(
+                                    canvasColor: Color.fromRGBO(60, 65, 74, 1),
+                                  ),
+                                  child: new Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      new ClipRRect(
+                                        borderRadius:
+                                            new BorderRadius.circular(8.0),
+                                        child: Image.asset(
+                                          "assets/splashscreen.png",
+                                          height: 50.0,
+                                          width: 50.0,
+                                          fit: BoxFit.fill,
                                         ),
-                                        child: new Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              new ClipRRect(
-                                                borderRadius:
-                                                    new BorderRadius.circular(
-                                                        8.0),
-                                                child: Image.asset(
-                                                  "assets/splashscreen.png",
-                                                  height: 50.0,
-                                                  width: 50.0,
-                                                  fit: BoxFit.fill,
-                                                ),
-                                              ),
-                                              Icon(Icons.add_box,
-                                                  size: 60,
-                                                  color: Colors.white70),
-                                            ])),
+                                      ),
+                                      Icon(Icons.add_box,
+                                          size: 60, color: Colors.white70),
+                                    ],
                                   ),
                                 ),
-                              ]))
-                    ])),
-                StreamBuilder<List<ProjectTask>>(
-                    stream: taskBloc.outProjectTask,
-                    initialData: [],
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<ProjectTask>> snapshot) {
-                      taskBloc.fetchProjectTask.add(null);
-                      return Container(
-                        color: Color.fromRGBO(60, 65, 74, 1),
-                        child: ListView.builder(
-                          scrollDirection: Axis.vertical,
-                          shrinkWrap: true,
-                          itemCount: snapshot.data.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return makeCard(snapshot.data[index], context);
-                          },
+                              ),
+                            ),
+                          ],
                         ),
-                      );
-                    })
+                      )
+                    ],
+                  ),
+                ),
+                StreamBuilder<List<ProjectTask>>(
+                  stream: taskBloc.outProjectTask,
+                  initialData: [],
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<ProjectTask>> snapshot) {
+                    taskBloc.fetchProjectTask.add(null);
+                    return Container(
+                      color: Color.fromRGBO(60, 65, 74, 1),
+                      child: ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return makeCard(snapshot.data[index], context);
+                        },
+                      ),
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -314,14 +319,15 @@ class _ProjectState extends State<ProjectPage> {
         subtitle: Row(
           children: <Widget>[
             Expanded(
-                flex: 1,
-                child: Container(
-                  // tag: 'hero',
-                  child: LinearProgressIndicator(
-                      backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
-                      value: 0.3,
-                      valueColor: AlwaysStoppedAnimation(Colors.green)),
-                )),
+              flex: 1,
+              child: Container(
+                // tag: 'hero',
+                child: LinearProgressIndicator(
+                    backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
+                    value: 0.3,
+                    valueColor: AlwaysStoppedAnimation(Colors.green)),
+              ),
+            ),
             Expanded(
               flex: 4,
               child: Padding(

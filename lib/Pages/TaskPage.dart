@@ -23,12 +23,11 @@ class _TaskState extends State<TaskPage> with SingleTickerProviderStateMixin {
     'PeakyBlinders',
     'IronMan',
   ];
-  String _selectedProject; 
+  String _selectedProject;
 
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -106,82 +105,42 @@ class _TaskState extends State<TaskPage> with SingleTickerProviderStateMixin {
             child: new Column(
               children: [
                 Card(
-                    color: Color.fromRGBO(60, 65, 74, 1),
-                    child: new Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          new Container(
-                            alignment: Alignment.centerLeft,
-                            margin: new EdgeInsets.only(
-                                top: 5.0, left: 15.0, bottom: 5),
-                            child: new Container(
-                              alignment: Alignment.centerLeft,
-                              child: new Theme(
-                                  data: Theme.of(context).copyWith(
-                                    canvasColor: Color.fromRGBO(60, 65, 74, 1),
-                                  ),
-                                  child: new Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        new Container(
-                                            alignment: Alignment.centerLeft,
-                                            margin: new EdgeInsets.only(
-                                                right: 15.0),
-                                            child: Icon(Icons.low_priority,
-                                                color: Colors.white70)),
-                                        new DropdownButton(
-                                          hint: Text('Priority',
-                                              style: new TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 15.0)),
-                                          value: _selectedPriority,
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              _selectedPriority = newValue;
-                                            });
-                                          },
-                                          items: _priorities.map((location) {
-                                            return DropdownMenuItem(
-                                              child: new Text(location,
-                                                  style: new TextStyle(
-                                                      color: Colors.white70)),
-                                              value: location,
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ])),
-                            ),
-                          ),
-                          new Container(
-                            margin: new EdgeInsets.only(
-                                top: 10.0, right: 60, bottom: 5),
-                            child: new Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  new Container(
-                                      alignment: Alignment.centerLeft,
-                                      margin: new EdgeInsets.only(right: 5.0),
-                                      child: Icon(Icons.show_chart,
-                                          color: Colors.white70)),
-                                  new Theme(
-                                    data: Theme.of(context).copyWith(
-                                      canvasColor:
-                                          Color.fromRGBO(60, 65, 74, 1),
-                                    ),
-                                    child: new DropdownButton(
-                                      hint: Text('Points',
+                  color: Color.fromRGBO(60, 65, 74, 1),
+                  child: new Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      new Container(
+                        alignment: Alignment.centerLeft,
+                        margin: new EdgeInsets.only(
+                            top: 5.0, left: 15.0, bottom: 5),
+                        child: new Container(
+                          alignment: Alignment.centerLeft,
+                          child: new Theme(
+                              data: Theme.of(context).copyWith(
+                                canvasColor: Color.fromRGBO(60, 65, 74, 1),
+                              ),
+                              child: new Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    new Container(
+                                        alignment: Alignment.centerLeft,
+                                        margin:
+                                            new EdgeInsets.only(right: 15.0),
+                                        child: Icon(Icons.low_priority,
+                                            color: Colors.white70)),
+                                    new DropdownButton(
+                                      hint: Text('Priority',
                                           style: new TextStyle(
                                               color: Colors.white70,
                                               fontSize: 15.0)),
-                                      value: _selectedPoints,
+                                      value: _selectedPriority,
                                       onChanged: (newValue) {
                                         setState(() {
-                                          _selectedPoints = newValue;
+                                          _selectedPriority = newValue;
                                         });
                                       },
-                                      items: _points.map((location) {
+                                      items: _priorities.map((location) {
                                         return DropdownMenuItem(
                                           child: new Text(location,
                                               style: new TextStyle(
@@ -190,10 +149,50 @@ class _TaskState extends State<TaskPage> with SingleTickerProviderStateMixin {
                                         );
                                       }).toList(),
                                     ),
-                                  )
-                                ]),
-                          ),
-                        ])),
+                                  ])),
+                        ),
+                      ),
+                      new Container(
+                        margin: new EdgeInsets.only(
+                            top: 10.0, right: 60, bottom: 5),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              new Container(
+                                  alignment: Alignment.centerLeft,
+                                  margin: new EdgeInsets.only(right: 5.0),
+                                  child: Icon(Icons.show_chart,
+                                      color: Colors.white70)),
+                              new Theme(
+                                data: Theme.of(context).copyWith(
+                                  canvasColor: Color.fromRGBO(60, 65, 74, 1),
+                                ),
+                                child: new DropdownButton(
+                                  hint: Text('Points',
+                                      style: new TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 15.0)),
+                                  value: _selectedPoints,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _selectedPoints = newValue;
+                                    });
+                                  },
+                                  items: _points.map((location) {
+                                    return DropdownMenuItem(
+                                      child: new Text(location,
+                                          style: new TextStyle(
+                                              color: Colors.white70)),
+                                      value: location,
+                                    );
+                                  }).toList(),
+                                ),
+                              )
+                            ]),
+                      ),
+                    ],
+                  ),
+                ),
                 Card(
                   color: Color.fromRGBO(60, 65, 74, 1),
                   child: Column(
@@ -243,9 +242,10 @@ class _TaskState extends State<TaskPage> with SingleTickerProviderStateMixin {
                   ),
                 ),
                 new Container(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    color: Color.fromRGBO(60, 65, 74, 1),
-                    child: new Column(children: [
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  color: Color.fromRGBO(60, 65, 74, 1),
+                  child: new Column(
+                    children: [
                       Center(
                         child: Card(
                           color: Color.fromRGBO(60, 65, 74, 1),
@@ -297,7 +297,9 @@ class _TaskState extends State<TaskPage> with SingleTickerProviderStateMixin {
                           ),
                         ),
                       ),
-                    ])),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
