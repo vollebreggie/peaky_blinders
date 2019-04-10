@@ -1,13 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:peaky_blinders/Database/Repository.dart';
-import 'package:peaky_blinders/Pages/PersonalPage.dart';
 import 'package:peaky_blinders/Pages/ProjectListPage.dart';
 import 'package:peaky_blinders/Pages/TaskListPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-
-import 'package:peaky_blinders/Pages/chart.dart';
 
 /// An indicator showing the currently selected page of a PageController
 class DotsIndicator extends AnimatedWidget {
@@ -78,12 +74,11 @@ class DotsIndicator extends AnimatedWidget {
 class MyHomePage extends StatefulWidget {
   @override
   State createState() => new MyHomePageState();
-  
 }
 
 class MyHomePageState extends State<MyHomePage> {
   Future getRequest() async {
-    var url = "http://192.168.178.11:45455/api/Project";
+    var url = "http://192.168.178.20:45455/api/Value";
     var response = await http.get(url);
     if (response.statusCode == 200) {
       var jsonResponse = convert.jsonDecode(response.body);
@@ -94,7 +89,6 @@ class MyHomePageState extends State<MyHomePage> {
     }
   }
 
-   
   final _controller = new PageController();
 
   static const _kDuration = const Duration(milliseconds: 300);
@@ -107,11 +101,11 @@ class MyHomePageState extends State<MyHomePage> {
     new ConstrainedBox(
         constraints: const BoxConstraints.expand(), child: new TaskListPage()),
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(),
-        child: new ProjectListPage()),
+        constraints: const BoxConstraints.expand(), child: new ProjectListPage()),
     new ConstrainedBox(
       constraints: const BoxConstraints.expand(),
-      child: new PersonalPage(),
+      child: new FlutterLogo(
+          style: FlutterLogoStyle.horizontal, colors: Colors.green),
     ),
   ];
 
@@ -126,7 +120,6 @@ class MyHomePageState extends State<MyHomePage> {
               physics: new AlwaysScrollableScrollPhysics(),
               controller: _controller,
               itemBuilder: (BuildContext context, int index) {
-                Repository.get().getProject();
                 return _pages[index % _pages.length];
               },
             ),

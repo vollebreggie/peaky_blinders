@@ -1,7 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:peaky_blinders/Database/Repository.dart';
+=======
 import 'package:peaky_blinders/Pages/PersonalPage.dart';
+>>>>>>> 0c900e1e74bfc4437f2f9cb677814869495d36c9
 import 'package:peaky_blinders/Pages/ProjectListPage.dart';
 import 'package:peaky_blinders/Pages/TaskListPage.dart';
 import 'package:http/http.dart' as http;
