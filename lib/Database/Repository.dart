@@ -33,13 +33,12 @@ class Repository {
     database = ProjectTaskDatabase.get();
   }
 
-  /// Fetches the books from the Google ProjectTasks Api with the query parameter being input.
-  /// If a book also exists in the local storage (eg. a book with notes/ stars) that version of the book will be used instead
-  Future<List<ProjectTask>> getProjectTasks() async {
+  Future<List<Project>> getProject() async {
     //http request, catching error like no internet connection.
     //If no internet is available for example response is
-    //  http.Response response = await http.get("https://www.googleapis.com/books/v1/volumes?q=$input")
-    //      .catchError((resp) {});
+    http.Response response = await http
+        .get("http://192.168.178.11:45455/api/Projects")
+        .catchError((resp) {});
 
     //  if(response == null) {
     //    return new ParsedResponse(NO_INTERNET, []);
@@ -49,32 +48,31 @@ class Repository {
     //  if(response.statusCode < 200 || response.statusCode >= 300) {
     //    return new ParsedResponse(response.statusCode, []);
     //  }
-    //  // Decode and go to the items part where the necessary book information is
-    //  List<dynamic> list = json.decode(response.body)['items'];
+    // Decode and go to the items part where the necessary book information is
+    List<dynamic> list = json.decode(response.body);
 
-    //  Map<String, ProjectTask> networkProjectTasks = {};
+    Map<String, ProjectTask> networkProjects = {};
 
-    // for(dynamic jsonProjectTask in list) {
-    //   ProjectTask book = new ProjectTask(
-    //       title: jsonProjectTask["volumeInfo"]["title"],
-    //       url: jsonProjectTask["volumeInfo"]["imageLinks"]["smallThumbnail"],
-    //       id: jsonProjectTask["id"]
-    //   );
+    for (dynamic jsonProject in list) {
+      Project project = new Project(
+          title: jsonProject["volumeInfo"]["title"], id: jsonProject["id"]);
+    }
 
-    //   networkProjectTasks[book.id] = book;
-    // }
-
-    // List<ProjectTask> databaseProjectTask = await database.getProjectTasks([]..addAll(networkProjectTasks.keys));
-    // for(ProjectTask book in databaseProjectTask) {
-    //   networkProjectTasks[book.id] = book;
-    // }
-//new ParsedResponse(response.statusCode, []..addAll(networkProjectTasks.values));
-    return database.getProjectTasks();
+//     List<ProjectTask> databaseProjectTask = await database.getProjectTasks([]..addAll(networkProjectTasks.keys));
+//     for(ProjectTask book in databaseProjectTask) {
+//       networkProjectTasks[book.id] = book;
+//     }
+// //new ParsedResponse(response.statusCode, []..addAll(networkProjectTasks.values));
+//     return database.getProjectTasks();
     //return databaseProjectTask;
   }
 
   Future updateProjectTask(ProjectTask projectTask) async {
     database.updateProjectTask(projectTask);
+  }
+
+  Future<List<ProjectTask>> getProjectTasks() async {
+    return database.getProjectTasks();
   }
 
   Future<List<Project>> getProjects() async {
