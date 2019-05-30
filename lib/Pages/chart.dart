@@ -1,6 +1,7 @@
 /// Example of a stacked area chart.
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:peaky_blinders/Models/ChartData.dart';
 
 class StackedAreaLineChart extends StatelessWidget {
   final List<charts.Series> seriesList;
@@ -9,9 +10,9 @@ class StackedAreaLineChart extends StatelessWidget {
   StackedAreaLineChart(this.seriesList, {this.animate});
 
   /// Creates a [LineChart] with sample data and no transition.
-  factory StackedAreaLineChart.withSampleData() {
+  factory StackedAreaLineChart.withSampleData(List<ChartData> list) {
     return new StackedAreaLineChart(
-      _createSampleData(),
+      _createGraph(list),
       // Disable animations for image tests.
       animate: true,
     );
@@ -19,18 +20,42 @@ class StackedAreaLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color color = new Color.fromRGBO(255, 255, 255, 1.0);
     return Container(
       width: MediaQuery.of(context).size.width,
       height: 200,
       color: Colors.transparent,
-      child: new charts.LineChart(seriesList,
+      child: new charts.TimeSeriesChart(seriesList,
+          dateTimeFactory: const charts.LocalDateTimeFactory(),
+          domainAxis: charts.DateTimeAxisSpec(
+            renderSpec: charts.GridlineRendererSpec(
+              labelStyle: new charts.TextStyleSpec(
+                  fontSize: 12, // size in Pts.
+                  color: charts.MaterialPalette.white),
+              lineStyle: charts.LineStyleSpec(
+                  thickness: 0, color: charts.MaterialPalette.transparent),
+            ),
+            tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+              day: charts.TimeFormatterSpec(
+                format: 'EEE',
+                transitionFormat: 'EEE',
+              ),
+            ),
+          ),
           primaryMeasureAxis: charts.NumericAxisSpec(
-              renderSpec: charts.GridlineRendererSpec(
-                  labelStyle: charts.TextStyleSpec(
-                      fontSize: 10, color: charts.MaterialPalette.transparent),
-                  lineStyle: charts.LineStyleSpec(
-                      thickness: 0,
-                      color: charts.MaterialPalette.transparent))),
+            renderSpec: charts.GridlineRendererSpec(
+              labelStyle: charts.TextStyleSpec(
+                fontSize: 5,
+                color: charts.Color(
+                    r: color.red,
+                    g: color.green,
+                    b: color.blue,
+                    a: color.alpha),
+              ),
+              lineStyle: charts.LineStyleSpec(
+                  thickness: 0, color: charts.MaterialPalette.transparent),
+            ),
+          ),
           defaultRenderer:
               new charts.LineRendererConfig(includeArea: true, stacked: true),
           animate: animate),
@@ -38,58 +63,32 @@ class StackedAreaLineChart extends StatelessWidget {
   }
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<LinearSales, int>> _createSampleData() {
-    final myFakeDesktopData = [
-      new LinearSales(0, 5),
-      new LinearSales(1, 25),
-      new LinearSales(2, 100),
-      new LinearSales(3, 75),
-    ];
-
-    var myFakeTabletData = [
-      new LinearSales(0, 10),
-      new LinearSales(1, 50),
-      new LinearSales(2, 200),
-      new LinearSales(3, 150),
-    ];
-
-    var myFakeMobileData = [
-      new LinearSales(0, 15),
-      new LinearSales(1, 75),
-      new LinearSales(2, 300),
-      new LinearSales(3, 225),
-    ];
-
-    return [
-      new charts.Series<LinearSales, int>(
-        id: 'Desktop',
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeDesktopData,
+  static List<charts.Series<ChartData, DateTime>> _createGraph(list) {
+    final List<ChartData> data = <ChartData>[
+      ChartData(
+        day: DateTime(2019, 1, 7),
+        count: 5,
       ),
-      new charts.Series<LinearSales, int>(
-        id: 'Tablet',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeTabletData,
-      ),
-      new charts.Series<LinearSales, int>(
-        id: 'Mobile',
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: myFakeMobileData,
-      ),
+      ChartData(day: DateTime(2019, 1, 8), count: 25),
+      ChartData(day: DateTime(2019, 1, 9), count: 100),
+      ChartData(day: DateTime(2019, 1, 10), count: 75),
+      ChartData(day: DateTime(2019, 1, 11), count: 25),
+      ChartData(day: DateTime(2019, 1, 12), count: 100),
+      ChartData(day: DateTime(2019, 1, 13), count: 75),
+    ];
+    Color color = new Color.fromRGBO(8, 68, 22, 1.0);
+    return <charts.Series<ChartData, DateTime>>[
+      charts.Series<ChartData, DateTime>(
+        id: 'Count',
+        colorFn: (_, __) => charts.Color(
+            r: color.red,
+            g: color.green,
+            b: color.blue,
+            a: color.alpha), //8, 68, 22
+        domainFn: (ChartData data, _) => data.day,
+        measureFn: (ChartData data, _) => data.count,
+        data: list,
+      )
     ];
   }
-}
-
-/// Sample linear data type.
-class LinearSales {
-  final int year;
-  final int sales;
-
-  LinearSales(this.year, this.sales);
 }

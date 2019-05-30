@@ -14,26 +14,31 @@ String clientToJson(User data) {
 
 class User {
   int id;
-  String firstName;
-  String lastName;
+  String identiyId, firstName, lastName, image;
   Token token;
+  bool selected;
 
   User({
     this.id,
+    this.identiyId,
     this.firstName,
     this.lastName,
-
+    this.token,
+    this.image,
+    this.selected
   });
 
   factory User.fromMap(Map<String, dynamic> json) => new User(
         id: json["id"],
-        firstName: json["first_name"],
-        lastName: json["last_name"],
+        identiyId: json["identiyId"],
+        firstName: json["firstname"],
+        image: json["image"],
       );
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "first_name": firstName,
-        "last_name": lastName,
+        "identiyId": identiyId,
+        "firstname": firstName,
+        "image": image,
       };
 }

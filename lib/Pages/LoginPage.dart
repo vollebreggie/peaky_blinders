@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:peaky_blinders/Database/Database.dart';
 import 'package:peaky_blinders/Models/User.dart';
 import 'package:validate/validate.dart';
 
@@ -157,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 17,
                           color: Colors.white)),
                   onPressed: () async {
-                    User rnd = new User(firstName: "henk", lastName: "detank", id: 1);
+                    User rnd = new User(firstName: "henk", lastName: "detank", id: 0);
                         
                    // await DBProvider.db.newUser(rnd);
                     setState(() {});

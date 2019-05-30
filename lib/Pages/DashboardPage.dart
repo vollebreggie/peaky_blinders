@@ -1,109 +1,33 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:peaky_blinders/Database/Repository.dart';
+import 'package:peaky_blinders/Bloc/BlocProvider.dart';
+import 'package:peaky_blinders/Bloc/PageBLoc.dart';
+import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
+import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
+import 'package:peaky_blinders/Bloc/TaskBloc.dart';
+import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Pages/PersonalPage.dart';
 import 'package:peaky_blinders/Pages/ProjectListPage.dart';
+import 'package:peaky_blinders/Pages/RoutineListPage.dart';
+import 'package:peaky_blinders/Pages/SynopsPage.dart';
 import 'package:peaky_blinders/Pages/TaskListPage.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert' as convert;
-
-import 'package:peaky_blinders/Pages/chart.dart';
-
-/// An indicator showing the currently selected page of a PageController
-class DotsIndicator extends AnimatedWidget {
-  DotsIndicator({
-    this.controller,
-    this.itemCount,
-    this.onPageSelected,
-    this.color: Colors.white,
-  }) : super(listenable: controller);
-
-  /// The PageController that this DotsIndicator is representing.
-  final PageController controller;
-
-  /// The number of items managed by the PageController
-  final int itemCount;
-
-  /// Called when a dot is tapped
-  final ValueChanged<int> onPageSelected;
-
-  /// The color of the dots.
-  ///
-  /// Defaults to `Colors.white`.
-  final Color color;
-
-  // The base size of the dots
-  static const double _kDotSize = 8.0;
-
-  // The increase in the size of the selected dot
-  static const double _kMaxZoom = 2.0;
-
-  // The distance between the center of each dot
-  static const double _kDotSpacing = 25.0;
-
-  Widget _buildDot(int index) {
-    double selectedness = Curves.easeOut.transform(
-      max(
-        0.0,
-        1.0 - ((controller.page ?? controller.initialPage) - index).abs(),
-      ),
-    );
-    double zoom = 1.0 + (_kMaxZoom - 1.0) * selectedness;
-    return new Container(
-      width: _kDotSpacing,
-      child: new Center(
-        child: new Material(
-          color: color,
-          type: MaterialType.circle,
-          child: new Container(
-            width: _kDotSize * zoom,
-            height: _kDotSize * zoom,
-            child: new InkWell(
-              onTap: () => onPageSelected(index),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget build(BuildContext context) {
-    return new Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: new List<Widget>.generate(itemCount, _buildDot),
-    );
-  }
-}
 
 class MyHomePage extends StatefulWidget {
   @override
   State createState() => new MyHomePageState();
-  
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  Future getRequest() async {
-    var url = "http://192.168.178.11:45455/api/Project";
-    var response = await http.get(url);
-    if (response.statusCode == 200) {
-      var jsonResponse = convert.jsonDecode(response.body);
-      var itemCount = jsonResponse['totalItems'];
-      print("Number of books about http: $itemCount.");
-    } else {
-      print("Request failed with status: ${response.statusCode}.");
-    }
-  }
-
-   
-  final _controller = new PageController();
-
-  static const _kDuration = const Duration(milliseconds: 300);
-
-  static const _kCurve = Curves.ease;
-
-  final _kArrowColor = Colors.black.withOpacity(0.8);
+  // final _controller = new PageController(
+  //   initialPage: 0,
+  //   keepPage: true,
+  // );
+  PageBloc pageBloc;
+  // int bottomSelectedIndex = 0;
+  final _kArrowColor = Color.fromRGBO(51, 3, 0, 1.0);
 
   final List<Widget> _pages = <Widget>[
+    new ConstrainedBox(
+        constraints: const BoxConstraints.expand(), child: new SynopsPage()),
     new ConstrainedBox(
         constraints: const BoxConstraints.expand(), child: new TaskListPage()),
     new ConstrainedBox(
@@ -111,26 +35,255 @@ class MyHomePageState extends State<MyHomePage> {
         child: new ProjectListPage()),
     new ConstrainedBox(
       constraints: const BoxConstraints.expand(),
+      child: new RoutineListPage(),
+    ),
+    new ConstrainedBox(
+      constraints: const BoxConstraints.expand(),
       child: new PersonalPage(),
     ),
   ];
 
+  void pageChanged(int index) {
+    setState(() {
+      pageBloc.page = index;
+    });
+  }
+
+  void navigateToPage(int index) {
+    setState(() {
+      pageBloc.page = index;
+      pageBloc.controller.animateToPage(index,
+          duration: Duration(milliseconds: 500), curve: Curves.ease);
+    });
+  }
+
+  void initData(context) async {
+    final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
+    final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+    final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+    final RoutineSettingBloc routineTaskBloc = BlocProvider.of<RoutineSettingBloc>(context);
+
+    //login user so that data can be retrieved
+    userBloc.login("mikevol@live.nl", "testing");
+
+    //retrieve data from server
+    await projectBloc.syncEverything();
+    await routineTaskBloc.syncRoutineSettings();
+
+    //set data for pages
+    await routineTaskBloc.setRoutineSettings();
+    await taskBloc.setTasksForToday();
+    await projectBloc.setProjectCount();
+    await taskBloc.setNextTask();
+  }
+
   @override
   Widget build(BuildContext context) {
+    pageBloc = BlocProvider.of<PageBloc>(context);
+    initData(context);
     return new Scaffold(
+      // backgroundColor: Colors.red,//.fromRGBO(51, 3, 0, 0.9),
       body: new IconTheme(
         data: new IconThemeData(color: _kArrowColor),
         child: new Stack(
           children: <Widget>[
             new PageView.builder(
               physics: new AlwaysScrollableScrollPhysics(),
-              controller: _controller,
+              controller: pageBloc.controller,
+              onPageChanged: (index) {
+                pageChanged(index);
+              },
               itemBuilder: (BuildContext context, int index) {
-                Repository.get().getProject();
-                return _pages[index % _pages.length];
+                return GestureDetector(
+                    child: _pages[index % _pages.length],
+                    onHorizontalDragEnd: (dragEndDetails) {
+                      if (dragEndDetails.primaryVelocity < 0 &&
+                          pageBloc.page == 4) {
+                        pageBloc.page = 0;
+                        navigateToPage(pageBloc.page);
+                      } else if (dragEndDetails.primaryVelocity > 0 &&
+                          pageBloc.page == 0) {
+                        pageBloc.page = 4;
+                        navigateToPage(pageBloc.page);
+                      } else if (dragEndDetails.primaryVelocity > 0 &&
+                          pageBloc.page != 0) {
+                        pageBloc.page--;
+                        navigateToPage(pageBloc.page);
+                      } else if (dragEndDetails.primaryVelocity < 0 &&
+                          pageBloc.page != 4) {
+                        pageBloc.page++;
+                        navigateToPage(pageBloc.page);
+                      }
+                    });
               },
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: new Theme(
+        data: Theme.of(context).copyWith(
+            // sets the background color of the `BottomNavigationBar`s
+            canvasColor: Color.fromRGBO(8, 68, 22, 0.98),
+            // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+            primaryColor: Colors.white,
+            textTheme: Theme.of(context).textTheme.copyWith(
+                caption: new TextStyle(
+                    color: Colors
+                        .white))), // sets the inactive color of the `BottomNavigationBar`
+        child: new BottomNavigationBar(
+          onTap: (index) {
+            navigateToPage(index);
+          },
+          currentIndex: pageBloc.page,
+          //fixedColor: Colors.transparent,
+          type: BottomNavigationBarType.shifting,
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.dashboard),
+              ),
+              title: Text(
+                'Dashboard',
+                style: new TextStyle(color: Colors.white),
+              ),
+              activeIcon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.dashboard),
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topLeft,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white, Colors.white30],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.view_headline),
+              ),
+              title: Text(
+                'Tasks Today',
+                style: new TextStyle(color: Colors.white),
+              ),
+              activeIcon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topLeft,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white, Colors.white30],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.view_headline),
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topLeft,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white, Colors.white70],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.view_agenda),
+              ),
+              title: Text(
+                'Projects',
+                style: new TextStyle(color: Colors.white),
+              ),
+              activeIcon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topLeft,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white, Colors.white70],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.view_agenda),
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.repeat),
+              ),
+              title: Text(
+                'Routine',
+                style: new TextStyle(color: Colors.white),
+              ),
+              activeIcon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.repeat),
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.account_circle),
+              ),
+              title: Text(
+                'Personal',
+                style: new TextStyle(color: Colors.white),
+              ),
+              activeIcon: ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1.0,
+                    colors: <Color>[Colors.white70, Colors.white],
+                    tileMode: TileMode.mirror,
+                  ).createShader(bounds);
+                },
+                child: Icon(Icons.account_circle),
+              ),
+            ),
+          ],
+          // new BottomNavigationBarItem(
+          //   activeIcon: new Icon(Icons.access_alarm),
+          //   icon: new Icon(Icons.access_alarm),
+          //   title: new Text("hello"),
+          // ),
         ),
       ),
     );

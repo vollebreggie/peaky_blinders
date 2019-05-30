@@ -1,17 +1,20 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:peaky_blinders/Bloc/BlocProvider.dart';
+import 'package:peaky_blinders/Bloc/UserBLoc.dart';
+import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Pages/chart.dart';
-import 'package:validate/validate.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:peaky_blinders/widgets/dashboardStats.dart';
+import 'package:peaky_blinders/widgets/personalScoreWidget.dart';
+import 'package:peaky_blinders/widgets/taskWidget.dart';
 
 class PersonalPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new _PersonalPageState();
-}
-
-class _LoginData {
-  String email = '';
-  String password = '';
 }
 
 class LinearSales {
@@ -22,40 +25,40 @@ class LinearSales {
 }
 
 class _PersonalPageState extends State<PersonalPage> {
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  _LoginData _data = new _LoginData();
+  final firstNameController = TextEditingController();
+  User _tempUser = new User(firstName: "Henk");
+  File _imageFile;
+  UserBloc blocUser;
 
-  String _validateEmail(String value) {
-    // If empty value, the isEmail function throw a error.
-    // So I changed this function with try and catch.
-    try {
-      Validate.isEmail(value);
-    } catch (e) {
-      return 'The E-mail Address must be a valid email address.';
-    }
-
-    return null;
+  _setFirstNameValue() {
+    _tempUser.firstName = firstNameController.text;
   }
 
-  String _validatePassword(String value) {
-    if (value.length < 8) {
-      return 'The Password must be at least 8 characters.';
-    }
+  @override
+  void initState() {
+    super.initState();
 
-    return null;
+    firstNameController.addListener(_setFirstNameValue);
+  }
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    super.dispose();
   }
 
   void submit() {}
 
   @override
   Widget build(BuildContext context) {
+    blocUser = BlocProvider.of<UserBloc>(context);
+    blocUser.getChartData();
+    _tempUser = blocUser.getUser();
+    firstNameController.text = _tempUser.firstName;
+
     Color hexToColor(String code) {
       return new Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
     }
-
-    final List<charts.Series> seriesList = [];
-    final bool animate = true;
-    final Size screenSize = MediaQuery.of(context).size;
 
     List<charts.Series<LinearSales, int>> _createSampleData() {
       final data = [
@@ -77,10 +80,9 @@ class _PersonalPageState extends State<PersonalPage> {
     }
 
     return new Scaffold(
-        // resizeToAvoidBottomPadding: true,
-        body: new Container(
-      color: Color.fromRGBO(60, 65, 74, 1),
-      child: new Container(
+      // resizeToAvoidBottomPadding: true,
+      backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
+      body: new Container(
         padding: const EdgeInsets.all(5.0),
         // color: Colors.white,
         child: new Container(
@@ -92,12 +94,20 @@ class _PersonalPageState extends State<PersonalPage> {
                 children: [
                   new ClipRRect(
                     borderRadius: new BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/splashscreen.png",
-                      height: 60.0,
-                      width: 60.0,
-                      fit: BoxFit.fill,
-                    ),
+                    child: _imageFile == null
+                        ? new CachedNetworkImage(
+                            fit: BoxFit.fill,
+                            height: 40,
+                            width: 40,
+                            imageUrl:
+                                blocUser.getImageFromServer(_tempUser.image),
+                            placeholder: (context, url) =>
+                                new CircularProgressIndicator(),
+                            errorWidget: (context, url, error) =>
+                                new Icon(Icons.error),
+                          )
+                        : Image.file(_imageFile,
+                            fit: BoxFit.fill, width: 40, height: 40),
                   ),
                   new Padding(padding: EdgeInsets.all(5.0)),
                   new Flexible(
@@ -106,11 +116,11 @@ class _PersonalPageState extends State<PersonalPage> {
                           primaryColor: Colors.white70,
                           accentColor: Colors.white70,
                           hintColor: Colors.white30),
-                      child: new TextFormField(
+                      child: new TextField(
+                        controller: firstNameController,
                         cursorColor: Colors.white,
-                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                            hintText: 'Mike Vollebregt',
+                            //hintText: blocUser.getUser() != null ? blocUser.getUser().firstName : "Your name",
                             //filled: true,
                             suffixIcon: IconButton(
                                 icon: Icon(Icons.edit),
@@ -125,39 +135,28 @@ class _PersonalPageState extends State<PersonalPage> {
                 ],
               ),
               new Padding(padding: EdgeInsets.only(top: 15.0)),
-              Card(
-                elevation: 8.0,
-                margin:
-                    new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                color: Color.fromRGBO(59, 66, 84, 1),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const ListTile(
-                      //leading: Icon(Icons.album),
-                      title: Text('Task Completed',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white70),
-                          textAlign: TextAlign.center),
-                      subtitle: Text('40',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 60),
-                          textAlign: TextAlign.center),
-                    ),
-                  ],
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  createPersonalScoreWidget(context, "Points",
+                      blocUser.completedPoints.toString(), "Gained this week"),
+                  createPersonalScoreWidget(context, "Tasks",
+                      blocUser.completedTask.toString(), "Completed this week"),
+                ],
               ),
-              new Container(
-                  color: Colors.transparent,
-                  margin: new EdgeInsets.only(top: 5.0, left: 5.0, bottom: 5),
-                  child: new StackedAreaLineChart.withSampleData()),
+              createStatistics(context),
             ]),
           ),
         ),
       ),
-    ));
+    );
+  }
+
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _imageFile = image;
+    });
   }
 }
