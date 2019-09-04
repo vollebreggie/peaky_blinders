@@ -144,7 +144,8 @@ class _TVProject extends State<TVProjectPage> {
                 child: new DragAndDropList<MileStone>(
                   tvBloc.getMileStones(),
                   itemBuilder: (BuildContext context, item) {
-                    return new SizedBox(child: createMileStoneTV(context, item));
+                    return new SizedBox(
+                        child: createMileStoneTV(context, item));
                     //return SizedBox(child: makeCard(item, context));
                   },
                   onDragFinish: (before, after) {
@@ -175,11 +176,18 @@ class _TVProject extends State<TVProjectPage> {
                 Icons.save,
                 color: Colors.white,
               ),
-              onPressed: () {
-                tvBloc.saveProject();
-                Navigator.pop(context, true);
-                Navigator.pop(context, true);
-                Navigator.pop(context, true);
+              onPressed: () async {
+                if (tvBloc.existingProject) {
+                  await tvBloc.saveProject();
+                  Navigator.pop(context, true);
+                  Navigator.pop(context, true);
+                } else {
+                  await tvBloc.saveProject();
+                  Navigator.pop(context, true);
+                  Navigator.pop(context, true);
+                  Navigator.of(context).pop();
+                }
+
                 //TODO::where to go when done here? i think dashboard and see next task//
               },
             ),
@@ -193,7 +201,7 @@ class _TVProject extends State<TVProjectPage> {
               tvBloc.updateMileStonesToTv();
               setState(() {});
             },
-           ),
+          ),
         ],
       ),
     );
@@ -320,7 +328,7 @@ class _TVProject extends State<TVProjectPage> {
 
   Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    
+
     setState(() {
       _imageFile = image;
     });

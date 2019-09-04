@@ -6,8 +6,8 @@ Widget createTask(context, header, body, icon) {
   return Stack(
     children: <Widget>[
       Container(
-        padding: EdgeInsets.only(left: 5.0, top: 25, right: 5),
-        height: 120,
+        padding: EdgeInsets.only(left: 5.0, top: MediaQuery.of(context).size.height * 0.03, right: 5),
+        height: MediaQuery.of(context).size.height * 0.14,
         width: MediaQuery.of(context).size.width * 0.5,
         color: Colors.transparent,
         child: Card(
@@ -15,11 +15,11 @@ Widget createTask(context, header, body, icon) {
           color: Colors.transparent,
           margin: EdgeInsets.zero,
           child: Container(
-            padding: EdgeInsets.only(left: 90.0),
+            padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.25),
             child: Center(
               child: Icon(icon, size: 40, color: Colors.white)
             ),
-            height: 120,
+            height: MediaQuery.of(context).size.height * 0.15,
             //color: Colors.transparent,
             decoration: new BoxDecoration(
               color: Colors.grey[900],
@@ -34,7 +34,7 @@ Widget createTask(context, header, body, icon) {
         ),
       ),
       Container(
-          padding: EdgeInsets.only(left: 5.0, top: 25.0, right: 5),
+          padding: EdgeInsets.only(left: 5.0, top: MediaQuery.of(context).size.height * 0.03, right: 5),
           child: ClipPath(
             clipper: TrapeziumClipper(),
             child: Container(
@@ -46,7 +46,7 @@ Widget createTask(context, header, body, icon) {
               //color: Color.fromRGBO(6, 32, 12, 1.0),
               //padding: EdgeInsets.all(8.0),
               width: MediaQuery.of(context).size.width * 0.3,
-              height: 95,
+              height: MediaQuery.of(context).size.height * 0.11,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[

@@ -52,10 +52,10 @@ class _TVListState extends State<TVListPage> {
                     stream: tvBloc.outDevice,
                     initialData: [],
                     builder: (BuildContext context,
-                        AsyncSnapshot<List<Device>> snapshot) {
+                        AsyncSnapshot<List<Device>> snapshot)  {
                       tvBloc.getDevices();
-
-                      return Container(
+                      return snapshot.data.length == 0 ? Text("No tv's available.", style: TextStyle(fontSize: 30, color: Colors.white)) :
+                      Container(
                         child: ListView.builder(
                           scrollDirection: Axis.vertical,
                           shrinkWrap: true,

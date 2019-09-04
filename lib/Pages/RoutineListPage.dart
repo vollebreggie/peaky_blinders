@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
+import 'package:peaky_blinders/Bloc/SkillBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
 import 'package:peaky_blinders/Pages/CreateRoutinePage.dart';
@@ -16,7 +17,10 @@ class RoutineListPage extends StatefulWidget {
 class _RoutineListState extends State<RoutineListPage> {
   @override
   Widget build(BuildContext context) {
-    RoutineSettingBloc settingTaskBloc = BlocProvider.of<RoutineSettingBloc>(context);
+    RoutineSettingBloc settingTaskBloc =
+        BlocProvider.of<RoutineSettingBloc>(context);
+   SkillBloc skillBloc =
+        BlocProvider.of<SkillBloc>(context);
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
@@ -28,9 +32,18 @@ class _RoutineListState extends State<RoutineListPage> {
               child: InkWell(
                 child: createRoutineTask(context, item),
                 onTap: () async {
+                  item.skills = await skillBloc.getAllSkillsForRoutineTaskSettingById(item.id);
                   settingTaskBloc.setRoutineTask(item);
-                  settingTaskBloc.getRoutineTaskSettings().removeWhere((t) => t == item);
-                  navigateToRoutineTaskPage(context);
+                  settingTaskBloc
+                      .getRoutineTaskSettings()
+                      .removeWhere((t) => t == item);
+
+                  settingTaskBloc.skills = [];
+                  settingTaskBloc.selectedSkills = [];
+                  await navigateToRoutineTaskPage(context);
+                },
+                onDoubleTap: () async {
+                  _showDialog(context, item);
                 },
               ),
             );
@@ -56,6 +69,8 @@ class _RoutineListState extends State<RoutineListPage> {
   Future navigateToCreateRoutineTaskPage(context) async {
     RoutineSettingBloc taskBloc = BlocProvider.of<RoutineSettingBloc>(context);
     UserBloc userBloc = BlocProvider.of<UserBloc>(context);
+    taskBloc.selectedSkills = [];
+    taskBloc.skills = [];
     taskBloc.setRoutineTask(new RoutineTaskSetting(
         id: 0,
         title: "New RoutineTaskSetting",
@@ -69,7 +84,8 @@ class _RoutineListState extends State<RoutineListPage> {
         thursday: 0,
         friday: 0,
         saturday: 0,
-        sunday: 0));
+        sunday: 0,
+        skills: []));
 
     Navigator.push(
       context,
@@ -77,8 +93,57 @@ class _RoutineListState extends State<RoutineListPage> {
     );
   }
 
+  void _showDialog(context, RoutineTaskSetting routineTaskSetting) {
+    RoutineSettingBloc settingTaskBloc =
+        BlocProvider.of<RoutineSettingBloc>(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Delete Routine?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            ButtonTheme(
+              minWidth: 150.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  await settingTaskBloc
+                      .deleteRoutineSettingsTask(routineTaskSetting);
+                  setState(() {
+                    //settingTaskBloc.getRoutineTaskSettings();
+                  });
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future navigateToRoutineTaskPage(context) async {
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => RoutinePage()),
     );

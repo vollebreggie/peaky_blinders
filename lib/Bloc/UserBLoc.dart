@@ -10,16 +10,17 @@ class UserBloc implements BlocBase {
   List<ChartData> list;
   User _user;
   int completedTask = 0;
+  int completedPointsToday = 0;
+  int completedTaskToday = 0;
   int completedPoints = 0;
   String id = "";
   //
   // Stream to handle the counter
   //
   StreamController<List<User>> _userController =
-  StreamController<List<User>>.broadcast();
+      StreamController<List<User>>.broadcast();
   StreamSink<List<User>> get _inUser => _userController.sink;
   Stream<List<User>> get outUser => _userController.stream;
-
 
   //
   // Stream to handle the action on the counter
@@ -31,35 +32,55 @@ class UserBloc implements BlocBase {
   // Constructor
   //
   UserBloc() {
-    UserRepository.get().syncUsers();
+    //UserRepository.get().syncUsers();
     //_actionController.stream.listen(_handleLogic);
   }
 
   User getUser() {
     return _user;
   }
-  
+
   void setUserId(id) {
     this.id = id;
   }
 
-  Future getCompletedTasks() async{
-     UserRepository.get().getCompletedTasks(_user.id).then((count) => completedTask = count);
+  Future getCompletedTasks() async {
+    await UserRepository.get()
+        .getCompletedTasks()
+        .then((count) => completedTask = count);
+  }
+
+  Future getCompletedTasksToday() async {
+    await UserRepository.get()
+        .getCompletedTasksToday()
+        .then((count) => completedTaskToday = count);
+  }
+
+  Future getPointsGainedToday() async {
+    await UserRepository.get()
+        .getPointsGainedToday()
+        .then((count) => completedPointsToday = count);
   }
 
   Future getCompletedPoints() async {
-     UserRepository.get().getCompletedPoints(_user.id).then((count) => completedPoints = count);
+    await UserRepository.get()
+        .getCompletedPoints()
+        .then((count) => completedPoints = count);
   }
 
-  void getChartData() async{
-    list = await UserRepository.get().getChartData(_user.id);
+  Future getChartData() async {
+    list = await UserRepository.get().getChartData();
   }
 
-  void uploadUserImage(image, userId){
+  Future logout() async {
+    await UserRepository.get().deleteEveryting();
+  }
+
+  void uploadUserImage(image, userId) {
     UserRepository.get().uploadUserImage(image, userId);
   }
 
- String getImageFromServer(image) {
+  String getImageFromServer(image) {
     return UserRepository.get().weburl +
         "images/" +
         (image != null ? image : "example.jpg");
@@ -70,18 +91,22 @@ class UserBloc implements BlocBase {
     _userController.close();
   }
 
-  void login(name, password) async {
-    await UserRepository.get().login(name, password);
-    _user = await UserRepository.get().getLoggedInUser();
-    getCompletedTasks();
-    getCompletedPoints();
-    getChartData();
+  Future<bool> login(name, password) async {
+    bool success = await UserRepository.get().login(name, password);
+    if (success) {
+      _user = await UserRepository.get().getLoggedInUser();
+    }
+    return success;
   }
 
-  void getUsers() async {
+  Future getUsers() async {
     _inUser.add(await UserRepository.get().getUsers());
   }
-  
+
+  Future setUser() async {
+    _user = await UserRepository.get().getLoggedInUser();
+  }
+
   // void _handleLogic(data) async {
   //   // _user = await Repository.get().getUser(id);
   //   _user = await Repository.get().getUserLocal();

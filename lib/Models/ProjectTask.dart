@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:peaky_blinders/Models/Project.dart';
+import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Models/User.dart';
 
@@ -26,38 +27,57 @@ class ProjectTask extends Task {
   String priority;
   Project project;
   User user;
-  
-  ProjectTask({
-    id,
-    title,
-    description,
-    started,
-    completed,
-    this.projectId,
-    this.project,
-    points,
-    this.priority,
-    this.user,
-    this.userId,
-    place,
-    this.milestoneId
 
-  }) : super(id: id, title: title, description: description, started: started, completed: completed, place: place, points: points);
+  ProjectTask(
+      {id,
+      title,
+      description,
+      started,
+      completed,
+      this.projectId,
+      this.project,
+      points,
+      this.priority,
+      this.user,
+      this.userId,
+      place,
+      this.milestoneId,
+      skills})
+      : super(
+            id: id,
+            title: title,
+            description: description,
+            started: started,
+            completed: completed,
+            place: place,
+            points: points,
+            skills: skills);
+
+  static List<dynamic> skillsToMap(List<Skill> skills) {
+    List<dynamic> jsonSkillsMap = [];
+    for (var skill in skills) {
+      jsonSkillsMap.add(skill.toMap());
+    }
+    return jsonSkillsMap;
+  }
 
   factory ProjectTask.fromMap(Map<String, dynamic> map) => new ProjectTask(
-    title: map[Task.db_title],
-    description: map[Task.db_description],
-    id: map[Task.db_id],
-    started: map[Task.db_started] != null ? DateTime.tryParse(map[Task.db_started]) : null,
-    projectId: map[db_projectId],
-    userId: map[db_userId],
-    milestoneId: map[db_milestoneId],
-    completed: map[Task.db_completed] != null ? DateTime.tryParse(map[Task.db_completed]) : null,
-    priority: map[db_priority],
-    points: map[Task.db_points],
-    place: map[Task.db_place],
-    project: map["project"] != null ? Project.fromMap(map["project"]) : null
-  );
+      title: map[Task.db_title],
+      description: map[Task.db_description],
+      id: map[Task.db_id],
+      started: map[Task.db_started] != null
+          ? DateTime.tryParse(map[Task.db_started])
+          : null,
+      projectId: map[db_projectId],
+      userId: map[db_userId],
+      milestoneId: map[db_milestoneId],
+      completed: map[Task.db_completed] != null
+          ? DateTime.tryParse(map[Task.db_completed])
+          : null,
+      priority: map[db_priority],
+      points: map[Task.db_points],
+      place: map[Task.db_place],
+      project: map["project"] != null ? Project.fromMap(map["project"]) : null);
 
   Map<String, dynamic> toMap() {
     return {
@@ -73,10 +93,11 @@ class ProjectTask extends Task {
       db_userId: userId,
       "user": user != null ? user.toMap() : null,
       "projectId": projectId,
+      "skills": skills != null ? skillsToMap(skills) : null
     };
   }
 
-    Map<String, dynamic> toMapWithoutId() {
+  Map<String, dynamic> toMapWithoutId() {
     return {
       Task.db_title: title,
       Task.db_description: description,
@@ -88,7 +109,7 @@ class ProjectTask extends Task {
       Task.db_place: place,
       db_userId: user.id,
       "projectId": 0,
+      "skills": skills != null ? skillsToMap(skills) : null
     };
   }
-
 }

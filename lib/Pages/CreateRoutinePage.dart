@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
 import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
+import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/widgets/TrapeziumClipper.dart';
+import 'package:peaky_blinders/widgets/createSkillCreateRoutineWidget.dart';
 
 class CreateRoutinePage extends StatefulWidget {
   @override
@@ -37,7 +39,7 @@ class _CreateRoutineState extends State<CreateRoutinePage> {
   void initState() {
     super.initState();
     titleController.addListener(_settitleValue);
-    titleController.addListener(_setDescriptionValue);
+    descriptionController.addListener(_setDescriptionValue);
   }
 
   @override
@@ -76,7 +78,7 @@ class _CreateRoutineState extends State<CreateRoutinePage> {
                   children: [
                     new Container(
                       padding: EdgeInsets.only(top: 50),
-                      height: MediaQuery.of(context).size.height * 0.6,
+                      height: MediaQuery.of(context).size.height * 0.8,
                       color: Colors.transparent,
                       child: new Column(
                         children: [
@@ -310,62 +312,212 @@ class _CreateRoutineState extends State<CreateRoutinePage> {
                                   ))
                             ],
                           ),
-                          new Container(
-                            alignment: Alignment.topCenter,
-                            height: 60,
-                            width: MediaQuery.of(context).size.width,
-                            //color: Colors.grey[900],
-                            decoration: new BoxDecoration(
-                              color: Colors.grey[900],
-                              borderRadius: new BorderRadius.all(
-                                const Radius.circular(10.0),
+                          Stack(
+                            children: <Widget>[
+                              Container(
+                                margin: EdgeInsets.only(
+                                    left: 20.0, top: 10.0, right: 5),
+                                decoration: new BoxDecoration(
+                                  color: Colors.grey[900],
+                                  borderRadius: new BorderRadius.only(
+                                    topRight: const Radius.circular(10.0),
+                                    bottomRight: const Radius.circular(10.0),
+                                    topLeft: const Radius.circular(20.0),
+                                    bottomLeft: const Radius.circular(20.0),
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    ListTile(
+                                      leading: Icon(Icons.description,
+                                          color: Colors.green),
+                                      title: TextField(
+                                        cursorColor: Colors.white,
+                                        textAlign: TextAlign.left,
+                                        controller: titleController,
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontStyle: FontStyle.normal,
+                                            fontSize: 20),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            margin: new EdgeInsets.only(
-                                top: 10.0, left: 5, right: 5, bottom: 5),
-                            child: new Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: <Widget>[
-                                  new Container(
-                                      alignment: Alignment.centerLeft,
-                                      margin: new EdgeInsets.only(
-                                          left: 20,
-                                          right: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.6),
-                                      child: Icon(Icons.show_chart,
-                                          color: pointsColors)),
-                                  new Theme(
-                                    data: Theme.of(context).copyWith(
-                                      canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                              Container(
+                                padding: EdgeInsets.only(
+                                    left: 5.0, top: 10.0, right: 5),
+                                child: ClipPath(
+                                  clipper: TrapeziumClipper(),
+                                  child: Container(
+                                    decoration: new BoxDecoration(
+                                        color: Color.fromRGBO(8, 68, 22, 1.0),
+                                        borderRadius: new BorderRadius.only(
+                                            topLeft:
+                                                const Radius.circular(10.0),
+                                            bottomLeft:
+                                                const Radius.circular(10.0))),
+                                    //color: Color.fromRGBO(6, 32, 12, 1.0),
+                                    //padding: EdgeInsets.all(8.0),
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.2,
+                                    height: 56,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Container(
+                                          padding: EdgeInsets.only(right: 15),
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                                // maxHeight: 70,
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.3),
+                                            child: Center(
+                                              child: Container(
+                                                padding:
+                                                    EdgeInsets.only(top: 10),
+                                                child: Icon(Icons.description,
+                                                    color: Colors.white,
+                                                    size: 35),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    child: new DropdownButton(
-                                      hint: Text('Points',
-                                          style: new TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 15.0)),
-                                      value: _selectedPoints,
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          tempRoutineTask.points =
-                                              int.parse(newValue);
-                                          pointsColors = getPointsColor(
-                                              int.parse(newValue));
-                                          _selectedPoints = newValue;
-                                        });
-                                      },
-                                      items: _points.map((location) {
-                                        return DropdownMenuItem(
-                                          child: new Text(location,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(bottom: 10),
+                            height: 65,
+                            child: StreamBuilder<List<Skill>>(
+                                stream: taskBloc.outSkill,
+                                initialData: [],
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<List<Skill>> snapshot) {
+                                  taskBloc.getCreateSkills();
+                                  return createSelectedSkillssCreateRoutine(
+                                      context, snapshot.data);
+                                }),
+                          ),
+                          Stack(
+                            children: <Widget>[
+                              new Container(
+                                alignment: Alignment.topCenter,
+                                height: 60,
+                                width: MediaQuery.of(context).size.width,
+                                //color: Colors.grey[900],
+                                decoration: new BoxDecoration(
+                                  color: Colors.grey[900],
+                                  borderRadius: new BorderRadius.all(
+                                    const Radius.circular(10.0),
+                                  ),
+                                ),
+                                margin: new EdgeInsets.only(
+                                    top: 10.0, left: 5, right: 5, bottom: 5),
+                                child: new Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: <Widget>[
+                                      new Container(
+                                          alignment: Alignment.centerLeft,
+                                          margin: new EdgeInsets.only(
+                                              left: 20,
+                                              right: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.6),
+                                          child: Icon(Icons.show_chart,
+                                              color: pointsColors)),
+                                      new Theme(
+                                        data: Theme.of(context).copyWith(
+                                          canvasColor:
+                                              Color.fromRGBO(0, 0, 0, 0.8),
+                                        ),
+                                        child: new DropdownButton(
+                                          hint: Text('Points',
                                               style: new TextStyle(
-                                                  color: Colors.white70)),
-                                          value: location,
-                                        );
-                                      }).toList(),
+                                                  color: Colors.white70,
+                                                  fontSize: 15.0)),
+                                          value: _selectedPoints,
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              tempRoutineTask.points =
+                                                  int.parse(newValue);
+                                              pointsColors = getPointsColor(
+                                                  int.parse(newValue));
+                                              _selectedPoints = newValue;
+                                            });
+                                          },
+                                          items: _points.map((location) {
+                                            return DropdownMenuItem(
+                                              child: new Text(location,
+                                                  style: new TextStyle(
+                                                      color: Colors.white70)),
+                                              value: location,
+                                            );
+                                          }).toList(),
+                                        ),
+                                      )
+                                    ]),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(
+                                    left: 5.0, top: 10.0, right: 5),
+                                child: ClipPath(
+                                  clipper: TrapeziumClipper(),
+                                  child: Container(
+                                    decoration: new BoxDecoration(
+                                        color: Color.fromRGBO(8, 68, 22, 1.0),
+                                        borderRadius: new BorderRadius.only(
+                                            topLeft:
+                                                const Radius.circular(10.0),
+                                            bottomLeft:
+                                                const Radius.circular(10.0))),
+                                    //color: Color.fromRGBO(6, 32, 12, 1.0),
+                                    //padding: EdgeInsets.all(8.0),
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.2,
+                                    height: 60,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Container(
+                                          padding: EdgeInsets.only(right: 15),
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                                // maxHeight: 70,
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.3),
+                                            child: Center(
+                                              child: Container(
+                                                padding:
+                                                    EdgeInsets.only(top: 10),
+                                                child: Icon(Icons.show_chart,
+                                                    color: Colors.white,
+                                                    size: 35),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  )
-                                ]),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           Center(
                             child: Card(
@@ -426,27 +578,6 @@ class _CreateRoutineState extends State<CreateRoutinePage> {
                   backgroundColor: Colors.transparent, //No more green
                   elevation: 0.0,
                   //Shadow gone
-                ),
-              ),
-              new Positioned(
-                //Place it at the top, and not use the entire screen
-                top: 7.0,
-                left: 40.0,
-                right: 0.0,
-                child: TextField(
-                  cursorColor: Colors.white,
-                  textAlign: TextAlign.center,
-                  controller: titleController,
-                  style: TextStyle(
-                    // backgroundColor: Colors.transparent,
-                    color: Colors.white,
-                    fontSize: 16.0,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: "Routine Task Title",
-                    border: InputBorder.none,
-                    fillColor: Colors.transparent,
-                  ),
                 ),
               ),
             ],

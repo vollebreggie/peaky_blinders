@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
@@ -17,10 +19,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  // final _controller = new PageController(
-  //   initialPage: 0,
-  //   keepPage: true,
-  // );
   PageBloc pageBloc;
   // int bottomSelectedIndex = 0;
   final _kArrowColor = Color.fromRGBO(51, 3, 0, 1.0);
@@ -49,26 +47,44 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void navigateToPage(int index) {
-    setState(() {
-      pageBloc.page = index;
-      pageBloc.controller.animateToPage(index,
-          duration: Duration(milliseconds: 500), curve: Curves.ease);
-    });
+  Future navigateToPage(int index) async {
+    pageBloc.page = index;
+    await pageBloc.controller.animateToPage(index,
+        duration: Duration(milliseconds: 500), curve: Curves.ease);
   }
 
-  void initData(context) async {
+  Future setPage(dragEndDetails) async {
+    if (dragEndDetails.primaryVelocity < 0 && pageBloc.page == 4) {
+      pageBloc.page = 0;
+      await navigateToPage(pageBloc.page);
+    } else if (dragEndDetails.primaryVelocity > 0 && pageBloc.page == 0) {
+      pageBloc.page = 4;
+      await navigateToPage(pageBloc.page);
+    } else if (dragEndDetails.primaryVelocity > 0 && pageBloc.page != 0) {
+      pageBloc.page--;
+      await navigateToPage(pageBloc.page);
+    } else if (dragEndDetails.primaryVelocity < 0 && pageBloc.page != 4) {
+      if (pageBloc.page < 4) {
+        pageBloc.page++;
+        await navigateToPage(pageBloc.page);
+      }
+    }
+  }
+
+  Future setData(context) async {
     final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
-    final RoutineSettingBloc routineTaskBloc = BlocProvider.of<RoutineSettingBloc>(context);
-
-    //login user so that data can be retrieved
-    userBloc.login("mikevol@live.nl", "testing");
-
-    //retrieve data from server
+    final RoutineSettingBloc routineTaskBloc =
+        BlocProvider.of<RoutineSettingBloc>(context);
+    await userBloc.setUser();
     await projectBloc.syncEverything();
     await routineTaskBloc.syncRoutineSettings();
+    await userBloc.getCompletedTasksToday();
+    await userBloc.getPointsGainedToday();
+    await userBloc.getChartData();
+    await userBloc.getCompletedTasks();
+    await userBloc.getCompletedPoints();
 
     //set data for pages
     await routineTaskBloc.setRoutineSettings();
@@ -80,7 +96,6 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     pageBloc = BlocProvider.of<PageBloc>(context);
-    initData(context);
     return new Scaffold(
       // backgroundColor: Colors.red,//.fromRGBO(51, 3, 0, 0.9),
       body: new IconTheme(
@@ -97,23 +112,9 @@ class MyHomePageState extends State<MyHomePage> {
                 return GestureDetector(
                     child: _pages[index % _pages.length],
                     onHorizontalDragEnd: (dragEndDetails) {
-                      if (dragEndDetails.primaryVelocity < 0 &&
-                          pageBloc.page == 4) {
-                        pageBloc.page = 0;
-                        navigateToPage(pageBloc.page);
-                      } else if (dragEndDetails.primaryVelocity > 0 &&
-                          pageBloc.page == 0) {
-                        pageBloc.page = 4;
-                        navigateToPage(pageBloc.page);
-                      } else if (dragEndDetails.primaryVelocity > 0 &&
-                          pageBloc.page != 0) {
-                        pageBloc.page--;
-                        navigateToPage(pageBloc.page);
-                      } else if (dragEndDetails.primaryVelocity < 0 &&
-                          pageBloc.page != 4) {
-                        pageBloc.page++;
-                        navigateToPage(pageBloc.page);
-                      }
+                      setPage(dragEndDetails).then((value) {
+                        print(pageBloc.page);
+                      });
                     });
               },
             ),
@@ -132,7 +133,7 @@ class MyHomePageState extends State<MyHomePage> {
                         .white))), // sets the inactive color of the `BottomNavigationBar`
         child: new BottomNavigationBar(
           onTap: (index) {
-            navigateToPage(index);
+            navigateToPage(index).catchError((value) {});
           },
           currentIndex: pageBloc.page,
           //fixedColor: Colors.transparent,

@@ -3,29 +3,36 @@ import 'dart:async';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/ProjectTaskSkill.dart';
 import 'package:peaky_blinders/Models/RoutineTask.dart';
+import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
+import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/Models/Task.dart';
+import 'package:peaky_blinders/Repositories/RoutineSettingRepository.dart';
+import 'package:peaky_blinders/Repositories/SkillRepository.dart';
 import 'package:peaky_blinders/Repositories/TaskRepository.dart';
 
 class TaskBloc implements BlocBase {
   List<Task> _tasksToday;
   List<Task> _tasksTomorrow;
+  List<Skill> selectedSkills;
+  List<Skill> skills;
+
   Task _nextTask;
   ProjectTask _currentProjectTask;
   int projectId = 0;
   int counter = 0;
 
-  //
-  // Stream to handle the counter
-  //
+  StreamController<List<Skill>> _skillController =
+      StreamController<List<Skill>>.broadcast();
+  StreamSink<List<Skill>> get _inSkill => _skillController.sink;
+  Stream<List<Skill>> get outSkill => _skillController.stream;
+
   StreamController<List<Task>> _taskController =
       StreamController<List<Task>>.broadcast();
   StreamSink<List<Task>> get _inTask => _taskController.sink;
   Stream<List<Task>> get outTask => _taskController.stream;
 
-  //
-  // Stream to handle the action on the counter
-  //
   StreamController _actionProjectController = StreamController();
   StreamSink get fetchProjectTask => _actionProjectController.sink;
 
@@ -33,8 +40,6 @@ class TaskBloc implements BlocBase {
   // Constructor
   //
   TaskBloc() {
-    //_actionProjectController.stream.listen(getProjectTasks);
-    TaskRepository.get().syncProjectTasks();
     _tasksToday = [];
     _tasksTomorrow = [];
   }
@@ -106,6 +111,16 @@ class TaskBloc implements BlocBase {
     await setNextTask();
   }
 
+  /// Delete task from the server and in the local database
+  /// param: Task object
+  Future deleteTaskAsync(Task task) async {
+    if (task.runtimeType == RoutineTask) {
+      await TaskRepository.get().deleteRoutineTaskAsync(task as RoutineTask);
+    } else if (task.runtimeType == ProjectTask) {
+      await TaskRepository.get().deleteProjectTaskAsync(task as ProjectTask);
+    }
+  }
+
   void setProjectId(int id) {
     this.projectId = id;
   }
@@ -118,8 +133,31 @@ class TaskBloc implements BlocBase {
     return _tasksToday;
   }
 
-  Future createTasksTomorrow(int userId) async {
-    await TaskRepository.get().createRoutineTasksForTomorrow(userId);
+  void setAllSkillsByCreateProject(Skill skill) {
+    if (skills[skills.indexOf(skill)].selected) {
+      skills[skills.indexOf(skill)].selected = false;
+    } else {
+      skills[skills.indexOf(skill)].selected = true;
+    }
+  }
+
+  void setTaskCreateSkill(Skill skill) {
+    if (selectedSkills.where((p) => p.id == skill.id).isEmpty) {
+      selectedSkills.add(skill);
+    } else {
+      selectedSkills.removeWhere((s) => s.id == skill.id);
+    }
+    _currentProjectTask.skills = selectedSkills;
+  }
+
+   Future getCreateSkills() async {
+    if (selectedSkills != null) {
+      _inSkill.add(selectedSkills);
+    }
+  }
+
+  Future createTasksTomorrow() async {
+    await TaskRepository.get().createRoutineTasksForTomorrow();
   }
 
   void setProjectTask(ProjectTask task) {
@@ -131,6 +169,13 @@ class TaskBloc implements BlocBase {
       await TaskRepository.get().completeProjectTask(task.id);
     } else if (task.runtimeType == RoutineTask) {
       await TaskRepository.get().completeRoutineTask(task.id);
+    }
+  }
+
+  Future getSelectedSkill() async {
+    if (_currentProjectTask != null) {
+      _inSkill.add(await SkillRepository.get()
+          .getSelectedSkillsForProjectTaskById(_currentProjectTask.id));
     }
   }
 
@@ -170,6 +215,10 @@ class TaskBloc implements BlocBase {
     await TaskRepository.get().setProjectTaskTomorrow(task);
   }
 
+  Future setProjectTaskSkill(ProjectTaskSkill projectTaskSkill) async {
+    await TaskRepository.get().setProjectTaskSkill(projectTaskSkill);
+  }
+
   List<Task> getTasksForTomorrow() {
     return _tasksTomorrow;
   }
@@ -180,7 +229,6 @@ class TaskBloc implements BlocBase {
 
   Future startTasks(ProjectTask task) async {
     await TaskRepository.get().startTask(task);
-    await setTasksForToday();
   }
 
   void getProjectTasks() async {

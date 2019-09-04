@@ -8,6 +8,10 @@ import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:peaky_blinders/Models/Skill.dart';
+import 'package:peaky_blinders/widgets/TrapeziumClipper.dart';
+import 'package:peaky_blinders/widgets/createSkillCreateTaskWidget.dart';
+import 'package:peaky_blinders/widgets/selectedSkillWidget.dart';
 
 class TaskPage extends StatefulWidget {
   @override
@@ -23,7 +27,7 @@ class _TaskState extends State<TaskPage> {
   Color pointsColors = Colors.white70;
   Color titleColors = Colors.white70;
   Color descriptionsColors = Colors.white70;
-
+  bool exit = true;
   List<String> _priorities = ['Trivial', 'Valuable', 'Necessary', 'Paramount'];
   String _selectedPriority;
   List<String> _points = ['1', '2', '4', '8', '12', '18', '32', '45'];
@@ -287,167 +291,213 @@ class _TaskState extends State<TaskPage> {
               child: SingleChildScrollView(
                 child: new Column(
                   children: [
-                    Card(
-                      elevation: 25,
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          // Box decoration takes a gradient
-                          gradient: LinearGradient(
-                            // Where the linear gradient begins and ends
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight,
-                            // Add one stop for each color. Stops should increase from 0 to 1
-                            stops: [0.1, 0.5, 0.7, 0.9],
-                            colors: [
-                              // Colors are easy thanks to Flutter's Colors class.
-                              Colors.black12,
-                              Colors.black12,
-                              Color.fromRGBO(0, 0, 0, 0.2),
-                              Color.fromRGBO(0, 0, 0, 0.2)
-                            ],
+                    Stack(
+                      children: <Widget>[
+                        new Container(
+                          alignment: Alignment.topCenter,
+                          height: 60,
+                          width: MediaQuery.of(context).size.width,
+                          //color: Colors.grey[900],
+                          decoration: new BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: new BorderRadius.all(
+                              const Radius.circular(10.0),
+                            ),
                           ),
+                          margin: new EdgeInsets.only(
+                              top: 10.0, left: 5, right: 5, bottom: 5),
+                          child: new Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                new Container(
+                                    alignment: Alignment.centerLeft,
+                                    margin: new EdgeInsets.only(
+                                        left: 20,
+                                        right:
+                                            MediaQuery.of(context).size.width *
+                                                0.6),
+                                    child: Icon(Icons.show_chart,
+                                        color: pointsColors)),
+                                new Theme(
+                                  data: Theme.of(context).copyWith(
+                                    canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                                  ),
+                                  child: new DropdownButton(
+                                    hint: Text('Points',
+                                        style: new TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 15.0)),
+                                    value: _selectedPoints,
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        tempProjectTask.points =
+                                            int.parse(newValue);
+                                        pointsColors =
+                                            getPointsColor(int.parse(newValue));
+                                        _selectedPoints = newValue;
+                                      });
+                                    },
+                                    items: _points.map((location) {
+                                      return DropdownMenuItem(
+                                        child: new Text(location,
+                                            style: new TextStyle(
+                                                color: Colors.white70)),
+                                        value: location,
+                                      );
+                                    }).toList(),
+                                  ),
+                                )
+                              ]),
                         ),
-                        child: new Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            new Container(
-                              alignment: Alignment.centerLeft,
-                              margin: new EdgeInsets.only(
-                                  top: 5.0, left: 15.0, bottom: 5),
-                              child: new Container(
-                                alignment: Alignment.centerLeft,
-                                child: new Theme(
-                                    data: Theme.of(context).copyWith(
-                                      canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                        Container(
+                          padding:
+                              EdgeInsets.only(left: 5.0, top: 10.0, right: 5),
+                          child: ClipPath(
+                            clipper: TrapeziumClipper(),
+                            child: Container(
+                              decoration: new BoxDecoration(
+                                  color: Color.fromRGBO(8, 68, 22, 1.0),
+                                  borderRadius: new BorderRadius.only(
+                                      topLeft: const Radius.circular(10.0),
+                                      bottomLeft: const Radius.circular(10.0))),
+                              //color: Color.fromRGBO(6, 32, 12, 1.0),
+                              //padding: EdgeInsets.all(8.0),
+                              width: MediaQuery.of(context).size.width * 0.2,
+                              height: 60,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Container(
+                                    padding: EdgeInsets.only(right: 15),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                          // maxHeight: 70,
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3),
+                                      child: Center(
+                                        child: Container(
+                                          padding: EdgeInsets.only(top: 10),
+                                          child: Icon(Icons.show_chart,
+                                              color: Colors.white, size: 35),
+                                        ),
+                                      ),
                                     ),
-                                    child: new Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          new Container(
-                                              alignment: Alignment.centerLeft,
-                                              margin: new EdgeInsets.only(
-                                                  right: 15.0),
-                                              child: Icon(Icons.low_priority,
-                                                  color: priorityColors)),
-                                          new DropdownButton(
-                                            hint: Text('Priority',
-                                                style: new TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 15.0)),
-                                            value: _selectedPriority,
-                                            onChanged: (newValue) {
-                                              setState(() {
-                                                priorityColors =
-                                                    getPriorityColor(newValue);
-                                                tempProjectTask.priority =
-                                                    newValue;
-                                              });
-                                            },
-                                            items: _priorities.map((location) {
-                                              return DropdownMenuItem(
-                                                child: new Text(location,
-                                                    style: new TextStyle(
-                                                        color: Colors.white70)),
-                                                value: location,
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ])),
+                                  ),
+                                ],
                               ),
                             ),
-                            new Container(
-                              margin: new EdgeInsets.only(
-                                  top: 10.0, right: 60, bottom: 5),
-                              child: new Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    new Container(
-                                        alignment: Alignment.centerLeft,
-                                        margin: new EdgeInsets.only(right: 5.0),
-                                        child: Icon(Icons.show_chart,
-                                            color: pointsColors)),
-                                    new Theme(
-                                      data: Theme.of(context).copyWith(
-                                        canvasColor:
-                                            Color.fromRGBO(0, 0, 0, 0.8),
-                                      ),
-                                      child: new DropdownButton(
-                                        hint: Text('Points',
-                                            style: new TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 15.0)),
-                                        value: _selectedPoints,
-                                        onChanged: (newValue) {
-                                          setState(() {
-                                            tempProjectTask.points =
-                                                int.parse(newValue);
-                                            pointsColors = getPointsColor(
-                                                int.parse(newValue));
-                                          });
-                                        },
-                                        items: _points.map((location) {
-                                          return DropdownMenuItem(
-                                            child: new Text(location,
-                                                style: new TextStyle(
-                                                    color: Colors.white70)),
-                                            value: location,
-                                          );
-                                        }).toList(),
-                                      ),
-                                    )
-                                  ]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Card(
-                      elevation: 25,
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          // Box decoration takes a gradient
-                          gradient: LinearGradient(
-                            // Where the linear gradient begins and ends
-                            begin: Alignment.bottomLeft,
-                            end: Alignment.topRight,
-                            // Add one stop for each color. Stops should increase from 0 to 1
-                            stops: [0.1, 0.5, 0.7, 0.9],
-                            colors: [
-                              // Colors are easy thanks to Flutter's Colors class.
-                              Colors.black12,
-                              Colors.black12,
-                              Color.fromRGBO(0, 0, 0, 0.2),
-                              Color.fromRGBO(0, 0, 0, 0.2)
-                            ],
                           ),
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            ListTile(
-                              leading:
-                                  Icon(Icons.description, color: titleColors),
-                              title: TextField(
-                                cursorColor: Colors.white,
-                                textAlign: TextAlign.left,
-                                controller: titleController,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontStyle: FontStyle.normal,
-                                    fontSize: 20),
-                                decoration: InputDecoration(
-                                  border: InputBorder.none,
+                      ],
+                    ),
+                    Stack(
+                      children: <Widget>[
+                        Container(
+                          margin:
+                              EdgeInsets.only(left: 20.0, top: 10.0, right: 5),
+                          decoration: new BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: new BorderRadius.only(
+                              topRight: const Radius.circular(10.0),
+                              bottomRight: const Radius.circular(10.0),
+                              topLeft: const Radius.circular(20.0),
+                              bottomLeft: const Radius.circular(20.0),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              ListTile(
+                                leading: Icon(Icons.description,
+                                    color: Colors.green),
+                                title: TextField(
+                                  cursorColor: Colors.white,
+                                  textAlign: TextAlign.left,
+                                  controller: titleController,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontStyle: FontStyle.normal,
+                                      fontSize: 20),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                        Container(
+                          padding:
+                              EdgeInsets.only(left: 5.0, top: 10.0, right: 5),
+                          child: ClipPath(
+                            clipper: TrapeziumClipper(),
+                            child: Container(
+                              decoration: new BoxDecoration(
+                                  color: Color.fromRGBO(8, 68, 22, 1.0),
+                                  borderRadius: new BorderRadius.only(
+                                      topLeft: const Radius.circular(10.0),
+                                      bottomLeft: const Radius.circular(10.0))),
+                              //color: Color.fromRGBO(6, 32, 12, 1.0),
+                              //padding: EdgeInsets.all(8.0),
+                              width: MediaQuery.of(context).size.width * 0.2,
+                              height: 56,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Container(
+                                    padding: EdgeInsets.only(right: 15),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                          // maxHeight: 70,
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.3),
+                                      child: Center(
+                                        child: Container(
+                                          padding: EdgeInsets.only(top: 10),
+                                          child: Icon(Icons.description,
+                                              color: Colors.white, size: 35),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
+                    projectTaskBloc.getProjectTask().id == 0
+                        ? Container(
+                            margin: EdgeInsets.only(bottom: 10),
+                            height: 65,
+                            child: StreamBuilder<List<Skill>>(
+                                stream: projectTaskBloc.outSkill,
+                                initialData: [],
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<List<Skill>> snapshot) {
+                                  projectTaskBloc.getCreateSkills();
+                                  return createSelectedSkillssCreateTask(
+                                      context, snapshot.data);
+                                }),
+                          )
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 10),
+                            height: 65,
+                            child: StreamBuilder<List<Skill>>(
+                                stream: projectTaskBloc.outSkill,
+                                initialData: [],
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<List<Skill>> snapshot) {
+                                  projectTaskBloc.getSelectedSkill();
+                                  return createSelectedSkills(
+                                      context, snapshot.data);
+                                }),
+                          ),
                     new Container(
                       height: MediaQuery.of(context).size.height * 0.6,
                       color: Colors.transparent,
@@ -458,52 +508,26 @@ class _TaskState extends State<TaskPage> {
                               elevation: 25,
                               color: Colors.transparent,
                               child: Container(
-                                decoration: BoxDecoration(
-                                  // Box decoration takes a gradient
-                                  gradient: LinearGradient(
-                                    // Where the linear gradient begins and ends
-                                    begin: Alignment.bottomLeft,
-                                    end: Alignment.topRight,
-                                    // Add one stop for each color. Stops should increase from 0 to 1
-                                    stops: [0.1, 0.5, 0.7, 0.9],
-                                    colors: [
-                                      // Colors are easy thanks to Flutter's Colors class.
-                                      Colors.black12,
-                                      Colors.black12,
-                                      Color.fromRGBO(0, 0, 0, 0.2),
-                                      Color.fromRGBO(0, 0, 0, 0.2)
-                                    ],
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    ListTile(
-                                      leading: Icon(Icons.description,
-                                          color: descriptionsColors),
-                                      title: Text(
-                                        'Description',
-                                        style: TextStyle(
-                                            color: Colors.white70,
-                                            fontStyle: FontStyle.normal),
-                                      ),
-                                    ),
-                                    Container(
+                                child: Center(
+                                  child: Card(
+                                    elevation: 1,
+                                    color: Colors.transparent,
+                                    child: Container(
                                       padding:
                                           EdgeInsets.only(bottom: 0, top: 0),
-                                      height: 150,
+                                      height: 200,
                                       width: MediaQuery.of(context).size.width,
                                       //padding: EdgeInsets.all(10.0),
                                       child: new ConstrainedBox(
                                         constraints: BoxConstraints(
-                                          maxHeight: 150.0,
+                                          maxHeight: 200.0,
                                         ),
                                         child: new Scrollbar(
                                           child: new SingleChildScrollView(
                                             scrollDirection: Axis.vertical,
                                             reverse: true,
                                             child: SizedBox(
-                                              height: 150.0,
+                                              height: 200.0,
                                               child: new TextField(
                                                 controller:
                                                     descriptionController,
@@ -511,19 +535,19 @@ class _TaskState extends State<TaskPage> {
                                                 textAlign: TextAlign.left,
                                                 maxLines: 100,
                                                 style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontStyle:
-                                                        FontStyle.normal),
-                                                decoration: new InputDecoration(
-                                                  border: InputBorder.none,
+                                                  color: Colors.white,
+                                                  fontStyle: FontStyle.normal,
                                                 ),
+                                                decoration: new InputDecoration(
+                                                    border: InputBorder.none,
+                                                    hintText: 'Description'),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -552,15 +576,21 @@ class _TaskState extends State<TaskPage> {
   }
 
   Future<bool> navigateBack() async {
-    if (projectBloc.selectedMilestone != null) {
-      projectBloc.selectedMilestone.tasks.add(projectBloc.selectedProjectTask);
-      projectBloc.selectedProjectTask = null;
-    } else {
-      await projectTaskBloc.updateProjectTask(projectTaskBloc.getProjectTask());
-      projectTaskBloc.setProjectTask(null);
-      await projectTaskBloc.setTasksForToday();
-      await projectTaskBloc.setNextTask();
+    if (exit) {
+      exit = false;
+      if (projectBloc.selectedMilestone != null) {
+        projectBloc.selectedMilestone.tasks
+            .add(projectBloc.selectedProjectTask);
+        projectBloc.selectedProjectTask = null;
+      } else {
+        await projectTaskBloc
+            .updateProjectTask(projectTaskBloc.getProjectTask());
+        projectTaskBloc.setProjectTask(null);
+        await projectTaskBloc.setTasksForToday();
+        await projectTaskBloc.setNextTask();
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 }

@@ -17,7 +17,7 @@ Widget createRoutineTask(context, RoutineTaskSetting task) {
         color: Colors.transparent,
         child: Container(
           padding: EdgeInsets.only(left: 50, top: 35),
-          child: new Text(task.title,
+          child: new Text(task.title.length < 17 ? task.title : task.title.substring(0, 17) + "..",
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white, fontSize: 25)),
           height: 70,

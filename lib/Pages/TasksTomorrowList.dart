@@ -5,16 +5,17 @@ import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/Task.dart';
-import 'package:peaky_blinders/widgets/TomorrowTaskWidget.dart';
+import 'package:peaky_blinders/Pages/TaskPage.dart';
+import 'package:peaky_blinders/widgets/TomorrowProjectTaskWidget.dart';
+import 'package:peaky_blinders/widgets/TomorrowRoutineTaskWidget.dart';
 
 class TasksTomorrowListPage extends StatefulWidget {
-  
   @override
   _TasksTomorrowListState createState() => _TasksTomorrowListState();
 }
 
 class _TasksTomorrowListState extends State<TasksTomorrowListPage> {
-   List<Task> tasks;
+  List<Task> tasks;
   @override
   Widget build(BuildContext context) {
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
@@ -33,19 +34,23 @@ class _TasksTomorrowListState extends State<TasksTomorrowListPage> {
         tasks,
         itemBuilder: (BuildContext context, item) {
           return new SizedBox(
-              child: InkWell(
-                  child: createTomorrowTaskWidget(context, item),
-                  onTap: () async {
-                    if (item.runtimeType == ProjectTask) {
-                      final TaskBloc taskBloc =
-                          BlocProvider.of<TaskBloc>(context);
-                      await taskBloc.setProjectTaskForTomorrow(item);
-                      await taskBloc.setTasksForTomorrow();
-                      setState(() {
-                       tasks = taskBloc.getTasksForTomorrow(); 
-                      });
-                    }
-                  }));
+              child: item.runtimeType == ProjectTask
+                  ? InkWell(
+                      child: createTomorrowProjectTaskWidget(context, item),
+                      onTap: () async {
+                        await taskBloc.setProjectTaskForTomorrow(item);
+                        await taskBloc.setTasksForTomorrow();
+                        setState(() {
+                          tasks = taskBloc.getTasksForTomorrow();
+                        });
+                      },
+                      onDoubleTap: () async {
+                        taskBloc.setProjectTask(item);
+                        taskBloc.getTasksToday().removeWhere((t) => t == item);
+                        navigateToTaskPage(context);
+                      },
+                    )
+                  : createTomorrowRoutineTaskWidget(context, item));
         },
         onDragFinish: (before, after) async {
           await taskBloc.changePriorityOfTasksTomorrow(before, after);
@@ -56,4 +61,8 @@ class _TasksTomorrowListState extends State<TasksTomorrowListPage> {
       ),
     );
   }
+}
+
+Future navigateToTaskPage(context) async {
+  Navigator.push(context, MaterialPageRoute(builder: (context) => TaskPage()));
 }

@@ -363,55 +363,38 @@ class _TVTaskState extends State<TVTaskPage> {
                                     ],
                                   ),
                                 ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    ListTile(
-                                      leading: Icon(Icons.description,
-                                          color: descriptionsColors),
-                                      title: Text(
-                                        'Description',
-                                        style: TextStyle(
-                                            color: Colors.white70,
-                                            fontStyle: FontStyle.normal),
-                                      ),
+                                child: Container(
+                                  padding: EdgeInsets.only(bottom: 0, top: 0),
+                                  height: 200,
+                                  width: MediaQuery.of(context).size.width,
+                                  //padding: EdgeInsets.all(10.0),
+                                  child: new ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight: 200.0,
                                     ),
-                                    Container(
-                                      padding:
-                                          EdgeInsets.only(bottom: 0, top: 0),
-                                      height: 150,
-                                      width: MediaQuery.of(context).size.width,
-                                      //padding: EdgeInsets.all(10.0),
-                                      child: new ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxHeight: 150.0,
-                                        ),
-                                        child: new Scrollbar(
-                                          child: new SingleChildScrollView(
-                                            scrollDirection: Axis.vertical,
-                                            reverse: true,
-                                            child: SizedBox(
-                                              height: 150.0,
-                                              child: new TextField(
-                                                controller:
-                                                    descriptionController,
-                                                cursorColor: Colors.white,
-                                                textAlign: TextAlign.left,
-                                                maxLines: 100,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontStyle:
-                                                        FontStyle.normal),
-                                                decoration: new InputDecoration(
-                                                  border: InputBorder.none,
-                                                ),
-                                              ),
+                                    child: new Scrollbar(
+                                      child: new SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        reverse: true,
+                                        child: SizedBox(
+                                          height: 200.0,
+                                          child: new TextField(
+                                            controller: descriptionController,
+                                            cursorColor: Colors.white,
+                                            textAlign: TextAlign.left,
+                                            maxLines: 100,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontStyle: FontStyle.normal,
                                             ),
+                                            decoration: new InputDecoration(
+                                                border: InputBorder.none,
+                                                hintText: 'Description'),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),

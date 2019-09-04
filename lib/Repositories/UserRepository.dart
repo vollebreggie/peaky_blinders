@@ -10,11 +10,11 @@ import 'package:peaky_blinders/Models/Token.dart';
 import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Repositories/BaseRepository.dart';
 import 'package:http/http.dart' as http;
+import 'package:peaky_blinders/Repositories/ErrorRepository.dart';
 import 'package:peaky_blinders/Repositories/ParsedResponse.dart';
 
 class UserRepository extends BaseRepository {
   static final UserRepository _repo = new UserRepository._internal();
-  LocalDatabase database;
 
   static UserRepository get() {
     return _repo;
@@ -36,9 +36,12 @@ class UserRepository extends BaseRepository {
     if (parsedResponse.isOk()) {
       Token token = parsedResponse.body;
       User user = await getUserFromServer(token.id);
+      ErrorRepository.get().user = user;
       database.updateLoggedInUser(user);
       database.updateToken(token);
+      return true;
     }
+    return false;
   }
 
   void syncUsers() async {
@@ -53,19 +56,49 @@ class UserRepository extends BaseRepository {
     }
   }
 
-  Future<int> getCompletedTasks(userId) async {
-    http.Response response = await http.get(
-        super.weburl + "api/accounts/getTasksThisweek/$userId",
-        headers: {"Content-Type": "application/json"});
+  Future deleteEveryting() async {
+    await database.deleteAllEverything();
+  }
+  
+  Future<int> getCompletedTasks() async {
+    http.Response response = await http
+        .get(super.weburl + "api/accounts/getTasksThisweek", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
     return int.tryParse(response.body) == null
         ? 0
         : int.tryParse(response.body);
   }
 
-  Future<List<ChartData>> getChartData(userId) async {
-    http.Response response = await http.get(
-        super.weburl + "api/accounts/getDataForGraph/$userId",
-        headers: {"Content-Type": "application/json"});
+  Future<int> getCompletedTasksToday() async {
+    http.Response response = await http
+        .get(super.weburl + "api/accounts/getTasksCompletedToday", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
+    return int.tryParse(response.body) == null
+        ? 0
+        : int.tryParse(response.body);
+  }
+
+  Future<int> getPointsGainedToday() async {
+    http.Response response = await http
+        .get(super.weburl + "api/accounts/getPointsGainedToday", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
+    return int.tryParse(response.body) == null
+        ? 0
+        : int.tryParse(response.body);
+  }
+
+  Future<List<ChartData>> getChartData() async {
+    http.Response response =
+        await http.get(super.weburl + "api/accounts/getDataForGraph", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
     ParsedResponse parsedResponse =
         interceptResponse<ChartData>(response, true);
     if (parsedResponse.isOk()) {
@@ -74,10 +107,12 @@ class UserRepository extends BaseRepository {
     return null;
   }
 
-  Future<int> getCompletedPoints(userId) async {
-    http.Response response = await http.get(
-        super.weburl + "api/accounts/getPointsThisweek/$userId",
-        headers: {"Content-Type": "application/json"});
+  Future<int> getCompletedPoints() async {
+    http.Response response = await http
+        .get(super.weburl + "api/accounts/getPointsThisweek", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
     return int.tryParse(response.body) == null
         ? 0
         : int.tryParse(response.body);

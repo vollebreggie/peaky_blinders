@@ -18,7 +18,7 @@ Widget createTask(context, Task task) {
           child: Container(
             padding: EdgeInsets.only(left: 90.0),
             child: Center(
-                child: new Text(task.title,
+                child: new Text(task.title.length < 25 ? task.title : task.title.substring(0, 23) + "..",
                     textAlign: TextAlign.start,
                     style: TextStyle(color: Colors.white, fontSize: 20))),
             height: 120,

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
+import 'package:peaky_blinders/Bloc/SkillBloc.dart';
+import 'package:peaky_blinders/Bloc/TVBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
@@ -10,11 +12,13 @@ import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Pages/CreateProjectPage.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
+import 'package:peaky_blinders/Pages/TVListPage.dart';
 import 'package:peaky_blinders/Pages/TaskListPage.dart';
 import 'package:peaky_blinders/Pages/Taskpage.dart';
 import 'package:peaky_blinders/Pages/TasksTomorrowList.dart';
 import 'package:peaky_blinders/widgets/NextTask.dart';
 import 'package:peaky_blinders/widgets/TomorrowTasksWidget.dart';
+import 'package:peaky_blinders/widgets/createPlanWidget.dart';
 import 'package:peaky_blinders/widgets/dashboardStats.dart';
 import 'package:peaky_blinders/widgets/taskWidget.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -28,21 +32,29 @@ class _SynopsPageState extends State<SynopsPage> {
   @override
   Widget build(BuildContext context) {
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+    final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
     final PageBloc pageBloc = BlocProvider.of<PageBloc>(context);
     Task nextTask = taskBloc.getNextTask();
 
-    void navigateToPage(int index) {
+    Future navigateToPage(int index) async {
       pageBloc.page = index;
-      pageBloc.controller.animateToPage(index,
+      await pageBloc.controller.animateToPage(index,
           duration: Duration(milliseconds: 500), curve: Curves.ease);
     }
 
-    void changeNextTask() async {
+    Future changeNextTask() async {
       final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+      final SkillBloc skillBloc = BlocProvider.of<SkillBloc>(context);
       final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
+
       await taskBloc.completedTask(taskBloc.getNextTask());
-      userBloc.getChartData();
+      await skillBloc.syncSkillByTask(taskBloc.getNextTask());
+      await userBloc.getChartData();
+      await userBloc.getCompletedTasksToday();
+      await userBloc.getPointsGainedToday();
+      await userBloc.getCompletedPoints();
+      await userBloc.getCompletedTasks();
       await taskBloc.setNextTask();
       await taskBloc.setTasksForToday();
       setState(() {
@@ -55,16 +67,22 @@ class _SynopsPageState extends State<SynopsPage> {
       body: Center(
         child: Column(
           children: <Widget>[
-            //TODO:: what to show when no task is available
             InkWell(
-              child: nextTask != null
-                  ? createNextTask(context, nextTask)
-                  : InkWell(
-                      child: createTomorrowTasksWidget(context),
-                      onTap: () async {
-                        navigateToTomorrowTaskListPage(context);
+              child: projectBloc.getProjectCount() == 0
+                  ? InkWell(
+                      child: createPlanWidget(context),
+                      onTap: () {
+                        _showDialog(context);
                       },
-                    ),
+                    )
+                  : nextTask != null
+                      ? createNextTask(context, nextTask)
+                      : InkWell(
+                          child: createTomorrowTasksWidget(context),
+                          onTap: () async {
+                            await navigateToTomorrowTaskListPage(context);
+                          },
+                        ),
               onTap: () async {
                 if (nextTask.runtimeType == ProjectTask) {
                   taskBloc.setProjectTask(nextTask);
@@ -72,7 +90,7 @@ class _SynopsPageState extends State<SynopsPage> {
                 }
               },
               onLongPress: () async {
-                changeNextTask();
+                await changeNextTask();
               },
             ),
             createStatistics(context),
@@ -81,11 +99,11 @@ class _SynopsPageState extends State<SynopsPage> {
                 InkWell(
                   child: createTask(
                       context,
-                      "Tasks Today",
+                      "Tasks Left Today",
                       taskBloc.getTasksToday().length.toString(),
                       Icons.view_headline),
-                  onTap: () {
-                    navigateToPage(1);
+                  onTap: () async {
+                    await navigateToPage(1);
                   },
                 ),
                 InkWell(
@@ -94,9 +112,21 @@ class _SynopsPageState extends State<SynopsPage> {
                       "Projects",
                       projectBloc.getProjectCount().toString(),
                       Icons.view_agenda),
-                  onTap: () {
-                    navigateToPage(2);
+                  onTap: () async {
+                    await navigateToPage(2);
                   },
+                ),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                InkWell(
+                  child: createTask(context, "Completed Tasks",
+                      userBloc.completedTaskToday.toString(), Icons.check),
+                ),
+                InkWell(
+                  child: createTask(context, "Points Gained",
+                      userBloc.completedPointsToday.toString(), Icons.check),
                 ),
               ],
             ),
@@ -108,17 +138,19 @@ class _SynopsPageState extends State<SynopsPage> {
 
   Future navigateToCreateProject(context) async {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
+    bloc.selectedProblems = [];
+    
     bloc.setCurrentProject(new Project(
-        id: 0,
-        title: "title",
+        title: "ProjectName",
         description: "some description",
         imagePathServer: "example.jpg",
         totalPoints: 0,
         completedPoints: 0,
         priority: "Trivial",
+        milestones: [],
         started: DateTime.now()));
-
-    Navigator.push(
+    bloc.createMileStone();
+    await Navigator.push(
         context, MaterialPageRoute(builder: (context) => CreateProjectPage()));
   }
 
@@ -126,21 +158,20 @@ class _SynopsPageState extends State<SynopsPage> {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
     bloc.setCurrentProject(project);
 
-    Navigator.push(
+    await Navigator.push(
         context, MaterialPageRoute(builder: (context) => ProjectPage()));
   }
 
   Future navigateToTaskListPage(context) async {
-    Navigator.push(
+    await Navigator.push(
         context, MaterialPageRoute(builder: (context) => TaskListPage()));
   }
 
   Future navigateToTomorrowTaskListPage(context) async {
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
-    final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
-    await taskBloc.createTasksTomorrow(userBloc.getUser().id);
+    await taskBloc.createTasksTomorrow();
     await taskBloc.setTasksForTomorrow();
-    Navigator.push(context,
+    await Navigator.push(context,
         MaterialPageRoute(builder: (context) => TasksTomorrowListPage()));
   }
 
@@ -182,12 +213,12 @@ class _SynopsPageState extends State<SynopsPage> {
         ),
         trailing:
             Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
-        onTap: () {
+        onTap: () async {
           final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
           final TaskBloc blocTask = BlocProvider.of<TaskBloc>(context);
           bloc.setCurrentProject(project);
           blocTask.setProjectId(project.id);
-          navigateToProject(context, project);
+          await navigateToProject(context, project);
         },
       );
 
@@ -243,7 +274,65 @@ class _SynopsPageState extends State<SynopsPage> {
   }
 
   Future navigateToTaskPage(context) async {
-    Navigator.push(
+    await Navigator.push(
         context, MaterialPageRoute(builder: (context) => TaskPage()));
+  }
+
+  void _showDialog(context) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Create a plan by",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            RaisedButton(
+              color: Color.fromRGBO(47, 87, 53, 0.8),
+              onPressed: () async {
+                await navigateToCreateProject(context);
+              },
+              splashColor: Colors.grey,
+              textColor: Colors.white,
+              padding: const EdgeInsets.all(0.0),
+              shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(5.0)),
+              child: Container(
+                //padding: const EdgeInsets.all(10.0),
+                child: Text('Phone'),
+              ),
+            ),
+            RaisedButton(
+              color: Color.fromRGBO(47, 87, 53, 0.8),
+              onPressed: () async {
+                final TVBloc tvbloc = BlocProvider.of<TVBloc>(context);
+                tvbloc.setOwner();
+
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => TVListPage()));
+              },
+              splashColor: Colors.grey,
+              textColor: Colors.white,
+              padding: const EdgeInsets.all(0.0),
+              shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(5.0)),
+              child: Container(
+                //padding: const EdgeInsets.all(10.0),
+                child: Text('TV'),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

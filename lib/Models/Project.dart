@@ -3,6 +3,8 @@ import 'dart:core';
 
 import 'package:meta/meta.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/Problem.dart';
+import 'package:peaky_blinders/Models/ProjectProblem.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:peaky_blinders/Models/User.dart';
@@ -29,7 +31,9 @@ class Project {
   List<ProjectTask> tasks;
   List<User> users;
   List<UserProject> userProject;
+  List<ProjectProblem> projectProblem;
   List<MileStone> milestones;
+  List<Problem> problems;
 
   Project(
       {this.id,
@@ -44,7 +48,9 @@ class Project {
       this.started,
       this.lastUpdated,
       this.userProject,
-      this.milestones});
+      this.milestones,
+      this.projectProblem,
+      this.problems});
 
   Project.fromMap(Map<String, dynamic> map)
       : this(
@@ -65,9 +71,14 @@ class Project {
                 ? DateTime.tryParse(map["lastUpdated"])
                 : null,
             priority: map[db_priority],
-            milestones: map["mileStones"] != null ? milestonesFromMap(map["mileStones"]) : null,
+            milestones: map["mileStones"] != null
+                ? milestonesFromMap(map["mileStones"])
+                : null,
             userProject: map["userProjects"] != null
                 ? userProjectsFromMaps(map["userProjects"])
+                : null,
+            projectProblem: map["projectProblem"] != null
+                ? projectProblemsFromMaps(map["projectProblem"])
                 : null);
 
   double getProgress() {
@@ -96,6 +107,14 @@ class Project {
     return newList;
   }
 
+  static List<ProjectProblem> projectProblemsFromMaps(List<dynamic> list) {
+    List<ProjectProblem> newList = [];
+    for (dynamic jsonObject in list) {
+      newList.add(ProjectProblem.fromMap(jsonObject));
+    }
+    return newList;
+  }
+
   static List<MileStone> milestonesFromMap(List<dynamic> list) {
     List<MileStone> milestones = [];
     for (var milestone in list) {
@@ -111,6 +130,15 @@ class Project {
       jsonMilestonesMap.add(milestone.toMap());
     }
     return jsonMilestonesMap;
+  }
+
+  static List<dynamic> problemsToMap(List<Problem> problems) {
+    //TODO:: map tasks.
+    List<dynamic> jsonProblemsMap = [];
+    for (var problem in problems) {
+      jsonProblemsMap.add(problem.toMap());
+    }
+    return jsonProblemsMap;
   }
 
   static List<dynamic> milestoneWithoutIdToMap(List<MileStone> milestones) {
@@ -143,7 +171,8 @@ class Project {
       db_completed: completed != null ? completed.toIso8601String() : null,
       db_priority: priority,
       "milestones": milestoneToMap(milestones),
-      "users": usersToMap(users)
+      "users": usersToMap(users),
+      "problems": problems != null ? problemsToMap(problems) : null
     };
   }
 
@@ -159,7 +188,8 @@ class Project {
       db_completed: completed != null ? completed.toIso8601String() : null,
       db_priority: priority,
       "milestones": milestoneWithoutIdToMap(milestones),
-      "users": users != null ? usersToMap(users) : null
+      "users": users != null ? usersToMap(users) : null,
+      "problems": problems != null ? problemsToMap(problems) : null
     };
   }
 }

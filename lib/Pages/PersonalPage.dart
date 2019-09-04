@@ -4,10 +4,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
+import 'package:peaky_blinders/Bloc/PageBLoc.dart';
+import 'package:peaky_blinders/Bloc/ProblemBloc.dart';
+import 'package:peaky_blinders/Bloc/SkillBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
+import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/Models/User.dart';
+import 'package:peaky_blinders/Pages/LoginPage.dart';
+import 'package:peaky_blinders/Pages/ProblemListPage.dart';
+import 'package:peaky_blinders/Pages/SkillListPage.dart';
 import 'package:peaky_blinders/Pages/chart.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:peaky_blinders/widgets/SkillStatsWidget.dart';
 import 'package:peaky_blinders/widgets/dashboardStats.dart';
 import 'package:peaky_blinders/widgets/personalScoreWidget.dart';
 import 'package:peaky_blinders/widgets/taskWidget.dart';
@@ -29,6 +37,8 @@ class _PersonalPageState extends State<PersonalPage> {
   User _tempUser = new User(firstName: "Henk");
   File _imageFile;
   UserBloc blocUser;
+  SkillBloc skillBloc;
+  ProblemBloc problemBloc;
 
   _setFirstNameValue() {
     _tempUser.firstName = firstNameController.text;
@@ -52,6 +62,9 @@ class _PersonalPageState extends State<PersonalPage> {
   @override
   Widget build(BuildContext context) {
     blocUser = BlocProvider.of<UserBloc>(context);
+    skillBloc = BlocProvider.of<SkillBloc>(context);
+    problemBloc = BlocProvider.of<ProblemBloc>(context);
+
     blocUser.getChartData();
     _tempUser = blocUser.getUser();
     firstNameController.text = _tempUser.firstName;
@@ -83,7 +96,6 @@ class _PersonalPageState extends State<PersonalPage> {
       // resizeToAvoidBottomPadding: true,
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
       body: new Container(
-        padding: const EdgeInsets.all(5.0),
         // color: Colors.white,
         child: new Container(
           child: new Center(
@@ -109,7 +121,6 @@ class _PersonalPageState extends State<PersonalPage> {
                         : Image.file(_imageFile,
                             fit: BoxFit.fill, width: 40, height: 40),
                   ),
-                  new Padding(padding: EdgeInsets.all(5.0)),
                   new Flexible(
                     child: new Theme(
                       data: new ThemeData(
@@ -134,22 +145,108 @@ class _PersonalPageState extends State<PersonalPage> {
                   ),
                 ],
               ),
-              new Padding(padding: EdgeInsets.only(top: 15.0)),
-              Column(
-                mainAxisSize: MainAxisSize.min,
+              Row(
                 children: <Widget>[
-                  createPersonalScoreWidget(context, "Points",
-                      blocUser.completedPoints.toString(), "Gained this week"),
-                  createPersonalScoreWidget(context, "Tasks",
-                      blocUser.completedTask.toString(), "Completed this week"),
+                  InkWell(
+                    child: createTask(context, "Tasks this week",
+                        blocUser.completedTask.toString(), Icons.check),
+                  ),
+                  InkWell(
+                    child: createTask(context, "Points this week",
+                        blocUser.completedPoints.toString(), Icons.check),
+                  ),
                 ],
               ),
-              createStatistics(context),
+              Row(
+                children: <Widget>[
+                  InkWell(
+                    child: createTask(context, "Skills",
+                        skillBloc.getSkillCount().toString(), Icons.build),
+                    onTap: () async {
+                      await skillBloc.setSkills();
+                      await navigateToSkillListPage(context);
+                    },
+                  ),
+                  InkWell(
+                    child: createTask(
+                        context,
+                        "Problems",
+                        problemBloc.getProblemCount().toString(),
+                        Icons.warning),
+                    onTap: () async {
+                      await problemBloc.setProblems();
+                      await navigateToProblemListPage(context);
+                    },
+                  ),
+                ],
+              ),
+              StreamBuilder<List<Skill>>(
+                stream: skillBloc.outSkill,
+                initialData: [],
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<Skill>> snapshot) {
+                      skillBloc.getSkillsForGraph(blocUser.getUser().amountOfSkills);
+                  return createSkillsStatistics(context, snapshot.data);
+                },
+              ),
+              InkWell(
+                child: Container(
+                  padding: EdgeInsets.only(left: 5.0, top: 25, right: 5),
+                  height: 100,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.transparent,
+                  child: Card(
+                    elevation: 8,
+                    color: Colors.transparent,
+                    margin: EdgeInsets.zero,
+                    child: Container(
+                      //padding: EdgeInsets.only(left: 90.0),
+                      child: Center(
+                        child: Text(
+                          "Log out",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontSize: 25),
+                        ),
+                      ),
+                      height: 80,
+                      //color: Colors.transparent,
+                      decoration: new BoxDecoration(
+                        color: Color.fromRGBO(128, 0, 0, 1),
+                        borderRadius: new BorderRadius.only(
+                            topRight: const Radius.circular(10.0),
+                            bottomRight: const Radius.circular(10.0),
+                            topLeft: const Radius.circular(20.0),
+                            bottomLeft: const Radius.circular(20.0)),
+                        //color: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                ),
+                onTap: () async => logout(context),
+              ),
             ]),
           ),
         ),
       ),
     );
+  }
+
+  Future logout(context) async {
+    await blocUser.logout();
+    final PageBloc pageBloc = BlocProvider.of<PageBloc>(context);
+    pageBloc.page = 0;
+    await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => LoginPage()));
+  }
+
+  Future navigateToSkillListPage(context) async {
+    await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => SkillListPage()));
+  }
+
+  Future navigateToProblemListPage(context) async {
+    await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => ProblemListPage()));
   }
 
   Future getImage() async {

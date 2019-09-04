@@ -10,6 +10,8 @@ class UserListPage extends StatefulWidget {
 }
 
 class _UserListState extends State<UserListPage> {
+  bool exit = true;
+  
   @override
   void dispose() {
     super.dispose();
@@ -19,73 +21,83 @@ class _UserListState extends State<UserListPage> {
   Widget build(BuildContext context) {
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
 
-    return Scaffold(
-      backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-      body: Stack(
-        children: <Widget>[
-          Container(
-            // Add box decoration
-            decoration: BoxDecoration(
-              // Box decoration takes a gradient
-              gradient: LinearGradient(
-                // Where the linear gradient begins and ends
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                // Add one stop for each color. Stops should increase from 0 to 1
-                stops: [0.1, 0.5, 0.7, 0.9],
-                colors: [
-                  // Colors are easy thanks to Flutter's Colors class.
-                  Colors.black38,
-                  Colors.black38,
-                  Colors.black45,
-                  Color.fromRGBO(0, 0, 0, 0.6),
-                ],
+    return WillPopScope(
+      child: Scaffold(
+        backgroundColor: Color.fromRGBO(60, 65, 74, 1),
+        body: Stack(
+          children: <Widget>[
+            Container(
+              // Add box decoration
+              decoration: BoxDecoration(
+                // Box decoration takes a gradient
+                gradient: LinearGradient(
+                  // Where the linear gradient begins and ends
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  // Add one stop for each color. Stops should increase from 0 to 1
+                  stops: [0.1, 0.5, 0.7, 0.9],
+                  colors: [
+                    // Colors are easy thanks to Flutter's Colors class.
+                    Colors.black38,
+                    Colors.black38,
+                    Colors.black45,
+                    Color.fromRGBO(0, 0, 0, 0.6),
+                  ],
+                ),
+              ),
+              child: Center(
+                child: StreamBuilder<List<User>>(
+                    stream: projectBloc.outUnselectedUser,
+                    initialData: [],
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<User>> snapshot) {
+                      projectBloc.getUnselectedUsers();
+
+                      return Container(
+                        child: ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: snapshot.data.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return makeCard(snapshot.data[index], context);
+                          },
+                        ),
+                      );
+                    }),
               ),
             ),
-            child: Center(
-              child: StreamBuilder<List<User>>(
-                  stream: projectBloc.outUnselectedUser,
-                  initialData: [],
-                  builder: (BuildContext context,
-                      AsyncSnapshot<List<User>> snapshot) {
-                    projectBloc.getUnselectedUsers();
-
-                    return Container(
-                      child: ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-                        itemCount: snapshot.data.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return makeCard(snapshot.data[index], context);
-                        },
-                      ),
-                    );
-                  }),
+            new Positioned(
+              //Place it at the top, and not use the entire screen
+              top: 0.0,
+              left: 0.0,
+              right: 0.0,
+              child: AppBar(
+                backgroundColor: Colors.transparent, //No more green
+                elevation: 0.0, //Shadow gone
+              ),
             ),
-          ),
-          new Positioned(
-            //Place it at the top, and not use the entire screen
-            top: 0.0,
-            left: 0.0,
-            right: 0.0,
-            child: AppBar(
-              backgroundColor: Colors.transparent, //No more green
-              elevation: 0.0, //Shadow gone
-            ),
-          ),
-        ],
+          ],
+        ),
+        // floatingActionButton: FloatingActionButton(
+        //   backgroundColor: Color.fromRGBO(12, 62, 18, 0.8),
+        //   child: const Icon(Icons.save),
+        //   onPressed: () {
+        //     projectBloc.updateNewUsersToProject();
+        //     Navigator.pop(context);
+        //   },
+        // ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: Color.fromRGBO(12, 62, 18, 0.8),
-      //   child: const Icon(Icons.save),
-      //   onPressed: () {
-      //     projectBloc.updateNewUsersToProject();
-      //     Navigator.pop(context);
-      //   },
-      // ),
+      onWillPop: navigateBack,
     );
   }
 
+  Future<bool> navigateBack() async {
+    if (exit) {
+      exit = false;
+      return true;
+    }
+    return false;
+  }
   ListTile makeListTile(User user, BuildContext context) => ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
         leading: Container(
@@ -115,10 +127,10 @@ class _UserListState extends State<UserListPage> {
         ),
         trailing: Icon(user.selected ? Icons.remove : Icons.group_add,
             color: Colors.white70, size: 30.0),
-        onTap: () {
+        onTap: () async {
           final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
           projectBloc.updateUser(user);
-          projectBloc.updateNewUsersToProject();
+          await projectBloc.updateNewUsersToProject();
         },
       );
 

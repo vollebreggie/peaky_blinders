@@ -133,7 +133,7 @@ class _TVMilestoneState extends State<TVMilestonePage> {
             child: const Icon(Icons.add),
             onPressed: () async {
               ProjectTask task = new ProjectTask(
-                  place: tvBloc.taskCounter, points: 1, priority: "Trivial");
+                  id: 0, place: tvBloc.taskCounter,title: "New Task", points: 1, priority: "Trivial", milestoneId: 0, userId: tvBloc.owner.id, projectId: tvBloc.project.id);
               tvBloc.taskCounter++;
               tvBloc.selectedProjectTask = task;
               await navigateToTVCreateTaskPage(context);

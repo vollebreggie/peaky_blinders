@@ -1,3 +1,5 @@
+import 'package:peaky_blinders/Models/Skill.dart';
+
 class Task {
 
   static final db_id = "id";
@@ -11,7 +13,8 @@ class Task {
   int id, points, place;
   String title, description;
   DateTime completed, started;
-
+  List<Skill> skills;
+  
   Task({
     this.id,
     this.title,
@@ -19,6 +22,7 @@ class Task {
     this.points,
     this.place,
     this.completed,
-    this.started
+    this.started,
+    this.skills
   });
 }

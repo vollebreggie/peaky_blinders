@@ -1,17 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:peaky_blinders/Database/LocalDatabase.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/ProjectTaskSkill.dart';
 import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/Task.dart';
+import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Repositories/BaseRepository.dart';
 import 'package:http/http.dart' as http;
 import 'package:peaky_blinders/Repositories/ParsedResponse.dart';
+import 'package:peaky_blinders/Repositories/SkillRepository.dart';
 
 class TaskRepository extends BaseRepository {
   static final TaskRepository _repo = new TaskRepository._internal();
-  LocalDatabase database;
 
   static TaskRepository get() {
     return _repo;
@@ -21,11 +25,11 @@ class TaskRepository extends BaseRepository {
     database = LocalDatabase.get();
   }
 
-  //TODO:: something will problably go wrong here now!
   void syncProjectTasks() async {
-    //User user = await database.getLoggedInToken();
-    http.Response response =
-        await http.get(super.weburl + "api/ProjectTasks/list/1"); //userid
+    http.Response response = await http
+        .get(super.weburl + "api/ProjectTasks/list/", headers: {
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    }); //userid
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, true);
 
@@ -36,9 +40,26 @@ class TaskRepository extends BaseRepository {
     }
   }
 
-  Future createRoutineTasksForTomorrow(int userId) async {
-    http.Response response =
-        await http.get(super.weburl + "api/RoutineTasks/user/$userId"); //userid
+  Future createRoutineTasksForTomorrow() async {
+    http.Response response = await http
+        .get(super.weburl + "api/RoutineTasks/user", headers: {
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    }); //userid
+    ParsedResponse parsedResponse =
+        interceptResponse<RoutineTask>(response, true);
+
+    if (parsedResponse.isOk()) {
+      for (RoutineTask task in parsedResponse.body) {
+        await database.updateRoutineTask(task);
+      }
+    }
+  }
+
+  Future createRoutineTasksForToday() async {
+    http.Response response = await http
+        .get(super.weburl + "api/RoutineTasks/today", headers: {
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    }); //userid
     ParsedResponse parsedResponse =
         interceptResponse<RoutineTask>(response, true);
 
@@ -63,8 +84,11 @@ class TaskRepository extends BaseRepository {
 
   Future syncProjectTasksByMileStoneId(milestoneId) async {
     //User user = await database.getLoggedInToken();
-    http.Response response = await http
-        .get(super.weburl + "api/ProjectTasks/milestone/$milestoneId"); //userid
+    http.Response response = await http.get(
+        super.weburl + "api/ProjectTasks/milestone/$milestoneId",
+        headers: {
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }); //userid
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, true);
 
@@ -77,9 +101,11 @@ class TaskRepository extends BaseRepository {
   }
 
   Future completeProjectTask(int projectTaskId) async {
-    http.Response response = await http
-        .get(super.weburl + "api/ProjectTasks/completed/$projectTaskId")
-        .catchError((resp) {});
+    http.Response response = await http.get(
+        super.weburl + "api/ProjectTasks/completed/$projectTaskId",
+        headers: {
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {});
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, false);
 
@@ -88,10 +114,12 @@ class TaskRepository extends BaseRepository {
     }
   }
 
-    Future completeRoutineTask(int routineTaskId) async {
-    http.Response response = await http
-        .get(super.weburl + "api/RoutineTasks/completed/$routineTaskId")
-        .catchError((resp) {});
+  Future completeRoutineTask(int routineTaskId) async {
+    http.Response response = await http.get(
+        super.weburl + "api/RoutineTasks/completed/$routineTaskId",
+        headers: {
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {});
     ParsedResponse parsedResponse =
         interceptResponse<RoutineTask>(response, false);
 
@@ -101,8 +129,9 @@ class TaskRepository extends BaseRepository {
   }
 
   Future startTask(ProjectTask task) async {
-    http.Response response =
-        await http.get(super.weburl + "api/ProjectTasks/start/${task.id}");
+    http.Response response = await http.get(
+        super.weburl + "api/ProjectTasks/start/${task.id}",
+        headers: {HttpHeaders.authorizationHeader: await getAuthHeader()});
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, false);
 
@@ -112,13 +141,32 @@ class TaskRepository extends BaseRepository {
   }
 
   Future setProjectTaskTomorrow(ProjectTask task) async {
-    http.Response response = await http
-        .get(super.weburl + "api/ProjectTasks/setTomorrow/${task.id}");
+    http.Response response = await http.get(
+        super.weburl + "api/ProjectTasks/setTomorrow/${task.id}",
+        headers: {HttpHeaders.authorizationHeader: await getAuthHeader()});
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, false);
 
     if (parsedResponse.isOk()) {
       database.updateProjectTask(parsedResponse.body);
+    }
+  }
+
+  Future setProjectTaskSkill(ProjectTaskSkill projectTaskSkill) async {
+    http.Response response = await http.get(
+        super.weburl +
+            "api/ProjectTasks/skill/${projectTaskSkill.projectTaskId}/${projectTaskSkill.skillId}",
+        headers: {HttpHeaders.authorizationHeader: await getAuthHeader()});
+    ParsedResponse parsedResponse =
+        interceptResponse<ProjectTaskSkill>(response, false);
+
+    if (parsedResponse.isOk()) {
+      if ((parsedResponse.body as ProjectTaskSkill).skillId == 0) {
+        await database.deleteProjectTaskSkillById(
+            (parsedResponse.body as ProjectTaskSkill).id);
+      } else {
+        await database.updateProjectTaskSkill(parsedResponse.body);
+      }
     }
   }
 
@@ -130,7 +178,10 @@ class TaskRepository extends BaseRepository {
     http.Response response = await http.put(
         super.weburl + "api/ProjectTasks/${projectTask.id}",
         body: jsonEncode(projectTask.toMap()),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {});
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {});
 
     ParsedResponse parsedResponse =
         interceptResponse<ProjectTask>(response, false);
@@ -147,7 +198,10 @@ class TaskRepository extends BaseRepository {
     http.Response response = await http.put(
         super.weburl + "api/ProjectTasks/priority",
         body: jsonEncode(milestone.toMap()),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
       print(resp.toString());
     });
 
@@ -167,10 +221,13 @@ class TaskRepository extends BaseRepository {
       jsonRoutineTaskMap.add(task.toMap());
     }
 
-      http.Response response = await http.put(
+    http.Response response = await http.put(
         super.weburl + "api/RoutineTasks/priority",
         body: jsonEncode(jsonRoutineTaskMap),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
       print(resp.toString());
     });
 
@@ -193,7 +250,10 @@ class TaskRepository extends BaseRepository {
     http.Response response = await http.post(
         super.weburl + "api/ProjectTasks/$id",
         body: jsonEncode(projectTask.toMap()),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
       print(resp.toString());
     });
 
@@ -212,7 +272,10 @@ class TaskRepository extends BaseRepository {
 
     http.Response response = await http.post(super.weburl + "api/ProjectTasks",
         body: jsonEncode(projectTask.toMap()),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
       print(resp.toString());
     });
 
@@ -220,7 +283,8 @@ class TaskRepository extends BaseRepository {
         interceptResponse<ProjectTask>(response, false);
 
     if (parsedResponse.isOk()) {
-      database.updateProjectTask(parsedResponse.body);
+      await database.updateProjectTask(parsedResponse.body);
+      await SkillRepository.get().syncProjectTaskSkillsProjectTasksById((parsedResponse.body as ProjectTask).id);
     }
   }
 
@@ -228,7 +292,10 @@ class TaskRepository extends BaseRepository {
     http.Response response = await http.post(
         super.weburl + "api/ProjectTasks/milestone",
         body: jsonEncode(projectTask.toMapWithoutId()),
-        headers: {"Content-Type": "application/json"}).catchError((resp) {
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
       print(resp.toString());
     });
   }
@@ -248,5 +315,81 @@ class TaskRepository extends BaseRepository {
   Future<List<ProjectTask>> getProjectTasksByMilestoneId(
       int milestoneId) async {
     return await database.getProjectTasksByMilestoneId(milestoneId);
+  }
+
+  /// Deletes projectTask from the server and local database
+  /// Param: projectTask object
+  Future deleteProjectTaskAsync(ProjectTask projectTask) async {
+    http.Response response = await http
+        .delete(super.weburl + "api/ProjectTasks/${projectTask.id}", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
+
+    ParsedResponse parsedResponse =
+        interceptResponse<ProjectTask>(response, false);
+
+    //TODO:: what to do when the response is not ok?
+    if (parsedResponse.isOk()) {
+      await database.deleteProjectTaskByIdAsync(projectTask.id);
+    }
+  }
+
+  /// Deletes projectTask by project id from the server and local database
+  /// Param: project id
+  Future deleteProjectTaskByProjectAsync(int projectId) async {
+    //TODO:: create delete function on server side
+    http.Response response = await http.delete(
+        super.weburl + "api/ProjectTasks/project/${projectId}",
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        });
+
+    ParsedResponse parsedResponse =
+        interceptResponse<ProjectTask>(response, true);
+
+    //TODO:: what to do when the response is not ok?
+    if (parsedResponse.isOk()) {
+      await database.deleteProjectTasksByProjectIdAsync(projectId);
+    }
+  }
+
+  /// Deletes projectTask by project id from the server and local database
+  /// Param: project id
+  Future deleteProjectTaskByMileStoneAsync(int milestoneId) async {
+    //TODO:: create delete function on server side
+    http.Response response = await http.delete(
+        super.weburl + "api/ProjectTasks/milestone/${milestoneId}",
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        });
+
+    ParsedResponse parsedResponse =
+        interceptResponse<MileStone>(response, false);
+
+    //TODO:: what to do when the response is not ok?
+    if (parsedResponse.isOk()) {
+      await database.deleteProjectTasksByMileStoneIdAsync(milestoneId);
+    }
+  }
+
+  /// Deletes routineTask from the server and local database
+  /// Param: routineTask object
+  Future deleteRoutineTaskAsync(RoutineTask routineTask) async {
+    http.Response response = await http
+        .delete(super.weburl + "api/RoutineTasks/${routineTask.id}", headers: {
+      "Content-Type": "application/json",
+      HttpHeaders.authorizationHeader: await getAuthHeader()
+    });
+
+    ParsedResponse parsedResponse =
+        interceptResponse<ProjectTask>(response, false);
+
+    //TODO:: what to do when the response is not ok?
+    if (parsedResponse.isOk()) {
+      await database.deleteRoutineTaskByIdAsync(routineTask.id);
+    }
   }
 }

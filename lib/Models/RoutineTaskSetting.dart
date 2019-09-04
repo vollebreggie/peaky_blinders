@@ -1,3 +1,4 @@
+import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/Models/User.dart';
 
 class RoutineTaskSetting {
@@ -22,43 +23,53 @@ class RoutineTaskSetting {
   //DateTime completed, started;
   String title, description;
   User user;
-  
-  RoutineTaskSetting({
-    this.id,
-    this.title,
-    this.description,
-    // this.started,
-    // this.completed,
-    this.points,
-    this.user,
-    this.userId,
-    this.place,
-    this.monday,
-    this.tuesday,
-    this.wednesday,
-    this.thursday,
-    this.friday,
-    this.saturday,
-    this.sunday
-  });
+  List<Skill> skills;
 
-  factory RoutineTaskSetting.fromMap(Map<String, dynamic> map) => new RoutineTaskSetting(
-    title: map[db_title],
-    description: map[db_description],
-    id: map[db_id],
-    //started: map[db_started] != null ? DateTime.tryParse(map[db_started]) : null,
-    userId: map[db_userId],
-    //completed: map[db_completed] != null ? DateTime.tryParse(map[db_completed]) : null,
-    points: map[db_points],
-    place: map[db_place],
-    monday: map[db_monday],
-    tuesday: map[db_tuesday],
-    wednesday: map[db_wednesday],
-    thursday: map[db_thursday],
-    friday: map[db_friday],
-    saturday: map[db_saturday],
-    sunday: map[db_sunday],
-  );
+  RoutineTaskSetting(
+      {this.id,
+      this.title,
+      this.description,
+      // this.started,
+      // this.completed,
+      this.points,
+      this.user,
+      this.userId,
+      this.place,
+      this.monday,
+      this.tuesday,
+      this.wednesday,
+      this.thursday,
+      this.friday,
+      this.saturday,
+      this.sunday,
+      this.skills});
+
+  static List<dynamic> skillsToMap(List<Skill> skills) {
+    List<dynamic> jsonSkillsMap = [];
+    for (var skill in skills) {
+      jsonSkillsMap.add(skill.toMap());
+    }
+    return jsonSkillsMap;
+  }
+
+  factory RoutineTaskSetting.fromMap(Map<String, dynamic> map) =>
+      new RoutineTaskSetting(
+        title: map[db_title],
+        description: map[db_description],
+        id: map[db_id],
+        //started: map[db_started] != null ? DateTime.tryParse(map[db_started]) : null,
+        userId: map[db_userId],
+        //completed: map[db_completed] != null ? DateTime.tryParse(map[db_completed]) : null,
+        points: map[db_points],
+        place: map[db_place],
+        monday: map[db_monday],
+        tuesday: map[db_tuesday],
+        wednesday: map[db_wednesday],
+        thursday: map[db_thursday],
+        friday: map[db_friday],
+        saturday: map[db_saturday],
+        sunday: map[db_sunday],
+      );
 
   Map<String, dynamic> toMap() {
     return {
@@ -77,8 +88,8 @@ class RoutineTaskSetting {
       db_thursday: thursday,
       db_friday: friday,
       db_saturday: saturday,
-      db_sunday: sunday
+      db_sunday: sunday,
+      "skills": skills != null ? skillsToMap(skills) : null
     };
   }
-
 }

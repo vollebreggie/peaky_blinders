@@ -10,12 +10,15 @@ import 'package:peaky_blinders/Models/MileStone.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:peaky_blinders/Models/User.dart';
+import 'package:peaky_blinders/Repositories/MileStoneRepository.dart';
 import 'package:peaky_blinders/Repositories/ProjectRepository.dart';
 import 'package:peaky_blinders/Repositories/TvRepository.dart';
 import 'package:peaky_blinders/Repositories/UserRepository.dart';
 import 'package:http/http.dart' as http;
 
 class TVBloc implements BlocBase {
+  bool existingProject = false;
+  Project project;
   List<MileStone> milestones;
   List<User> users;
   Device _device;
@@ -89,6 +92,10 @@ class TVBloc implements BlocBase {
     _inUnselectedUser.add(unselectedUsers);
   }
 
+  Future<List<MileStone>> getMilestonesForProject(projectId) async {
+    return await MileStoneRepository.get().getMilestonesByProjectId(projectId);
+  }
+
   void updateUser(user) {
     if (owner == user) {
       return;
@@ -143,6 +150,7 @@ class TVBloc implements BlocBase {
 
   void createMileStone() {
     MileStone milestone = new MileStone();
+    milestone.id = 0;
     milestone.title = "New Milestone";
     milestone.place = milestoneCounter;
     milestoneCounter++;
@@ -224,16 +232,27 @@ class TVBloc implements BlocBase {
   }
 
   Future saveProject() async {
-    Project project = new Project(totalPoints: 0, completedPoints: 0, priority: "Trivial");
+    if (existingProject) {
+      project.title = projectName;
+      project.imagePathServer = projectImage;
+      project.milestones = milestones;
+      project.users = users;
+      for (int i = 0; i < project.milestones.length; i++) {
+        project.milestones[i].projectId = project.id;
+      }
+      await ProjectRepository.get().updateProject(project);
+    } else {
+      Project project =
+          new Project(totalPoints: 0, completedPoints: 0, priority: "Trivial");
 
-    project.imagePathServer = projectImage;
-    project.title = projectName;
+      project.imagePathServer = projectImage;
+      project.title = projectName;
 
-    
+      project.milestones = milestones;
+      project.users = users;
+      await ProjectRepository.get().postProjectFromTv(project);
+    }
 
-    project.milestones = milestones;
-    project.users = users;
-    ProjectRepository.get().postProjectFromTv(project);
     cleanseTvCache();
   }
 
@@ -244,12 +263,25 @@ class TVBloc implements BlocBase {
     selectedMilestone = null;
     selectedProjectTask = null;
     milestoneCounter = 0;
+    existingProject = false;
   }
 
   Future updateImageToTv() async {
     if (_device != null) {
       await TvRepository.get()
           .updateTv("image", projectImage, _device.socketId);
+    }
+  }
+
+  Future navigateToTaskBoardTv() async {
+    if (_device != null) {
+      await TvRepository.get().updateTv("taskBoard", "", _device.socketId);
+    }
+  }
+
+  Future navigateToProjectBoardTv() async {
+    if (_device != null) {
+      await TvRepository.get().updateTv("projectBoard", "", _device.socketId);
     }
   }
 

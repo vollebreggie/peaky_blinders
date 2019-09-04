@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
@@ -6,6 +8,7 @@ import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/TVBloc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
+import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Pages/CreateProjectPage.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
 import 'package:peaky_blinders/Pages/TVListPage.dart';
@@ -13,31 +16,76 @@ import 'package:peaky_blinders/Pages/Taskpage.dart';
 import 'package:peaky_blinders/widgets/projectWidget.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class ProjectListPage extends StatelessWidget {
+class ProjectListPage extends StatefulWidget {
+  @override
+  _ProjectListState createState() => _ProjectListState();
+}
+
+class _ProjectListState extends State<ProjectListPage> {
+  bool _loadingInProgress;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadingInProgress = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
-      body: Center(
-        child: StreamBuilder<List<Project>>(
-            stream: projectBloc.outProject,
-            initialData: [],
-            builder:
-                (BuildContext context, AsyncSnapshot<List<Project>> snapshot) {
-              projectBloc.getProjects();
-              return Container(
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: snapshot.data.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return createNextProject(context, snapshot.data[index]);
+      body: StreamBuilder<List<Project>>(
+        stream: projectBloc.outProject,
+        initialData: [],
+        builder: (BuildContext context, AsyncSnapshot<List<Project>> snapshot) {
+          projectBloc.getProjects();
+          return Container(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: snapshot.data.length,
+              itemBuilder: (BuildContext context, int index) {
+                return InkWell(
+                  child: createNextProject(context, snapshot.data[index]),
+                  onTap: () async {
+                    final ProjectBloc bloc =
+                        BlocProvider.of<ProjectBloc>(context);
+                    final MileStoneBloc milestoneBloc =
+                        BlocProvider.of<MileStoneBloc>(context);
+                    final TaskBloc blocTask =
+                        BlocProvider.of<TaskBloc>(context);
+                    bloc.setCurrentProject(snapshot.data[index]);
+                    blocTask.setProjectId(snapshot.data[index].id);
+
+                    await milestoneBloc
+                        .getMilestonesByProjectId(snapshot.data[index].id);
+                    await navigateToProject(context, snapshot.data[index]);
                   },
-                ),
-              );
-            }),
+                  onLongPress: () async {
+                    final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
+                    tvBloc.setOwner();
+                    tvBloc.existingProject = true;
+                    tvBloc.projectImage = snapshot.data[index].imagePathServer;
+                    tvBloc.projectName = snapshot.data[index].title;
+                    tvBloc.project = snapshot.data[index];
+                    tvBloc.users = snapshot.data[index].users;
+
+                    tvBloc.milestones = await tvBloc
+                        .getMilestonesForProject(snapshot.data[index].id);
+                    tvBloc.milestoneCounter = tvBloc.milestones.length;
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => TVListPage()));
+                  },
+                  onDoubleTap: () {
+                    _showDeleteDialog(context, snapshot.data[index]);
+                  },
+                );
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
@@ -108,8 +156,62 @@ class ProjectListPage extends StatelessWidget {
     );
   }
 
-  Future navigateToCreateProject(context) async {
+  void _showDeleteDialog(context, Project project) {
+    ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Delete Project?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            _loadingInProgress ? CircularProgressIndicator() : new Container(),
+            ButtonTheme(
+              minWidth: 150.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  setState(() {
+                    _loadingInProgress = true;
+                  });
+                  await projectBloc.deleteProjectAsync(project);
+
+                  setState(() {
+                    _loadingInProgress = false;
+                  });
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void navigateToCreateProject(context) {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
+    bloc.selectedProblems = [];
+    
     bloc.setCurrentProject(new Project(
         title: "title",
         description: "some description",
@@ -119,7 +221,7 @@ class ProjectListPage extends StatelessWidget {
         priority: "Trivial",
         milestones: [],
         started: DateTime.now()));
-
+    bloc.createMileStone();
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => CreateProjectPage()));
   }
@@ -174,8 +276,7 @@ class ProjectListPage extends StatelessWidget {
           final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
           final MileStoneBloc milestoneBloc =
               BlocProvider.of<MileStoneBloc>(context);
-          final TaskBloc blocTask =
-              BlocProvider.of<TaskBloc>(context);
+          final TaskBloc blocTask = BlocProvider.of<TaskBloc>(context);
           bloc.setCurrentProject(project);
           blocTask.setProjectId(project.id);
           milestoneBloc.getMilestonesByProjectId(project.id);

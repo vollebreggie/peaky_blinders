@@ -26,7 +26,7 @@ class _MilestoneState extends State<MilestonePage> {
   TaskBloc taskBloc;
   MileStoneBloc mileStoneBloc;
   Color titleColors = Colors.white70;
-
+  bool exit = true;
   MileStone selectedMilestone;
 
   _settitleValue() {
@@ -80,10 +80,14 @@ class _MilestoneState extends State<MilestonePage> {
                               child: createTask(context, item),
                               onTap: () async {
                                 taskBloc.setProjectTask(item);
+                                taskBloc.selectedSkills = item.skills;
                                 projectBloc.selectedMilestone.tasks
                                     .removeWhere((t) => t == item);
                                 projectBloc.selectedProjectTask = item;
                                 navigateToTaskPage(context);
+                              },
+                              onDoubleTap: () async {
+                                _showDeleteDialog(context, item);
                               },
                             ),
                           );
@@ -139,6 +143,12 @@ class _MilestoneState extends State<MilestonePage> {
             backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
             child: const Icon(Icons.add),
             onPressed: () async {
+              int milestoneCounter = 0;
+              if (mileStoneBloc.milestones != null) {
+                for (int i = 0; i < mileStoneBloc.milestones.length; i++) {
+                  milestoneCounter += mileStoneBloc.milestones[i].tasks.length;
+                }
+              }
               UserBloc userBloc = BlocProvider.of<UserBloc>(context);
               ProjectTask task = new ProjectTask(
                   id: 0,
@@ -146,17 +156,68 @@ class _MilestoneState extends State<MilestonePage> {
                   description: "",
                   userId: userBloc.getUser().id,
                   milestoneId: mileStoneBloc.getCurrentMileStone().id,
-                  place: mileStoneBloc.getCurrentMileStone().tasks.length,
+                  place: milestoneCounter,
                   project: projectBloc.getCurrentProject(),
                   projectId: projectBloc.getCurrentProject().id,
                   points: 1,
                   priority: "Trivial");
               taskBloc.setProjectTask(task);
+              taskBloc.skills = [];
+              taskBloc.selectedSkills = [];
               await navigateToCreateTaskPage(context);
             },
           ),
         ),
         onWillPop: navigateBack);
+  }
+
+  void _showDeleteDialog(context, ProjectTask projectTask) {
+    MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Delete Project Task?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            ButtonTheme(
+              minWidth: 150.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  projectBloc.selectedMilestone.tasks
+                      .removeWhere((t) => t == projectTask);
+                      if(projectTask.id != 0) {
+                        taskBloc.deleteTaskAsync(projectTask);
+                      }
+                  setState(() {});
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   ListTile makeListTile(ProjectTask projectTask, BuildContext context) =>
@@ -231,6 +292,11 @@ class _MilestoneState extends State<MilestonePage> {
       );
 
   Future<bool> navigateBack() async {
-    return true;
+    if (exit) {
+      exit = false;
+      projectBloc.selectedMilestone = null;
+      return true;
+    }
+    return false;
   }
 }

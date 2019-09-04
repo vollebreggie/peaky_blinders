@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
+import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
@@ -9,6 +10,7 @@ import 'package:peaky_blinders/Pages/CreateTaskTodayPage.dart';
 import 'package:peaky_blinders/Pages/ExistingTasksPage.dart';
 import 'package:peaky_blinders/Pages/Taskpage.dart';
 import 'package:peaky_blinders/widgets/task.dart';
+import 'package:peaky_blinders/widgets/taskTodayWidget.dart';
 
 class TaskListPage extends StatefulWidget {
   @override
@@ -18,6 +20,7 @@ class TaskListPage extends StatefulWidget {
 class _TaskListState extends State<TaskListPage> {
   @override
   Widget build(BuildContext context) {
+    final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
@@ -26,11 +29,14 @@ class _TaskListState extends State<TaskListPage> {
         itemBuilder: (BuildContext context, item) {
           return new SizedBox(
             child: InkWell(
-              child: createTask(context, item),
+              child: createTodayTask(context, item),
               onTap: () async {
                 taskBloc.setProjectTask(item);
                 taskBloc.getTasksToday().removeWhere((t) => t == item);
                 navigateToTaskPage(context);
+              },
+              onDoubleTap: () async {
+                _showDeleteDialog(context, item);
               },
             ),
           );
@@ -41,13 +47,15 @@ class _TaskListState extends State<TaskListPage> {
         canBeDraggedTo: (one, two) => true,
         dragElevation: 8.0,
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
-        child: const Icon(Icons.add),
-        onPressed: () {
-          _showDialog(context);
-        },
-      ),
+      floatingActionButton: projectBloc.getProjectCount() != 0
+          ? FloatingActionButton(
+              backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
+              child: const Icon(Icons.add),
+              onPressed: () {
+                _showDialog(context);
+              },
+            )
+          : null,
     );
   }
 
@@ -70,6 +78,8 @@ class _TaskListState extends State<TaskListPage> {
         points: 1,
         priority: "Trivial");
     taskBloc.setProjectTask(task);
+    taskBloc.selectedSkills = [];
+    taskBloc.skills = [];
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => CreateTaskTodayPage()),
@@ -79,6 +89,7 @@ class _TaskListState extends State<TaskListPage> {
 
   void _showDialog(context) {
     // flutter defined function
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -133,8 +144,8 @@ class _TaskListState extends State<TaskListPage> {
 
   Future navigateToTaskPage(context) async {
     TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => TaskPage())).then((value) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TaskPage()))
+        .then((value) {
       setState(() {
         taskBloc.getTasksToday();
       });
@@ -144,6 +155,55 @@ class _TaskListState extends State<TaskListPage> {
   Future navigateToExistingTaskPage(context) async {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => ExistingTaskListPage()));
+  }
+
+  void _showDeleteDialog(context, Task task) {
+    TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Delete Task?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            ButtonTheme(
+              minWidth: 150.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  await taskBloc.deleteTaskAsync(task);
+                  await taskBloc.setTasksForToday();
+                  await taskBloc.setNextTask();
+                  setState(() {
+                    //taskBloc.getTasksToday();
+                  });
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   ListTile makeListTile(ProjectTask projectTask, BuildContext context) =>

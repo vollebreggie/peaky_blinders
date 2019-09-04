@@ -61,7 +61,7 @@ Widget createTomorrowTasksWidget(context) {
               ),
               //color: Color.fromRGBO(6, 32, 12, 1.0),
               //padding: EdgeInsets.all(8.0),
-              width: MediaQuery.of(context).size.width * 0.23,
+              width: MediaQuery.of(context).size.width * 0.20,
               height: 100,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -71,7 +71,7 @@ Widget createTomorrowTasksWidget(context) {
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                           // maxHeight: 70,
-                          maxWidth: MediaQuery.of(context).size.width * 0.4),
+                          maxWidth: MediaQuery.of(context).size.width * 0.25),
                       child: Center(
                           child:
                               Icon(Icons.add, size: 40, color: Colors.white)),

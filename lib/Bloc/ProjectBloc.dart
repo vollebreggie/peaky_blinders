@@ -4,17 +4,24 @@ import 'dart:io';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Models/Device.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectDropdown.dart';
+import 'package:peaky_blinders/Models/ProjectProblem.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:peaky_blinders/Models/User.dart';
+import 'package:peaky_blinders/Repositories/MileStoneRepository.dart';
+import 'package:peaky_blinders/Repositories/ProblemRepository.dart';
 import 'package:peaky_blinders/Repositories/ProjectRepository.dart';
+import 'package:peaky_blinders/Repositories/TaskRepository.dart';
 
 class ProjectBloc implements BlocBase {
   List<Project> _projects;
   Project _currentProject;
   Project _defaultProject;
   List<User> users;
+  List<Problem> problems;
+  List<Problem> selectedProblems;
   Device _device;
   int milestoneCounter;
   int taskCounter;
@@ -44,11 +51,23 @@ class ProjectBloc implements BlocBase {
   StreamSink<List<User>> get _inUser => _userController.sink;
   Stream<List<User>> get outUser => _userController.stream;
 
+  StreamController<List<Problem>> _problemController =
+      StreamController<List<Problem>>.broadcast();
+  StreamSink<List<Problem>> get _inProblems => _problemController.sink;
+  Stream<List<Problem>> get outProblems => _problemController.stream;
+
   StreamController<List<User>> _unselectedUserController =
       StreamController<List<User>>.broadcast();
   StreamSink<List<User>> get _inUnselectedUser =>
       _unselectedUserController.sink;
   Stream<List<User>> get outUnselectedUser => _unselectedUserController.stream;
+
+  StreamController<List<Problem>> _unselectedProblemController =
+      StreamController<List<Problem>>.broadcast();
+  StreamSink<List<Problem>> get _inUnselectedProblem =>
+      _unselectedProblemController.sink;
+  Stream<List<Problem>> get outUnselectedProblem =>
+      _unselectedProblemController.stream;
 
   StreamController _actionController = StreamController();
   StreamSink get fetchProject => _actionController.sink;
@@ -57,7 +76,6 @@ class ProjectBloc implements BlocBase {
   // Constructor
   //
   ProjectBloc() {
-    ProjectRepository.get().syncProjects();
     milestoneCounter = 0;
     taskCounter = 0;
     projectsCounter = 0;
@@ -67,14 +85,17 @@ class ProjectBloc implements BlocBase {
     this._currentProject = project;
   }
 
-  void updateCurrentProject(image) {
+  Future updateCurrentProject(image) async {
     if (image != null) {
-      ProjectRepository.get().upload(image, _currentProject.id);
+      await ProjectRepository.get().upload(image, _currentProject);
+    } else {
+      await ProjectRepository.get().updateProject(_currentProject);
     }
-    ProjectRepository.get().updateProject(_currentProject);
-    ProjectRepository.get().syncProjects();
   }
 
+  Future<String> getStringImageProject(int id) async {
+    return await ProjectRepository.get().getProjectImage(id);
+  }
   void setDevice(device) {
     _device = device;
   }
@@ -88,8 +109,8 @@ class ProjectBloc implements BlocBase {
   }
 
   postProject(File image, User user) async {
-    ProjectRepository.get().postProject(_currentProject, image, user);
-    ProjectRepository.get().syncProjects();
+    _currentProject.problems = selectedProblems;
+    await ProjectRepository.get().postProject(_currentProject, image, user);
   }
 
   Project getDefaultProject() {
@@ -120,15 +141,26 @@ class ProjectBloc implements BlocBase {
     }
   }
 
-  void updateNewUsersToProject() {
+  Future updateNewUsersToProject() async {
     List<User> selectedUsers = [];
     for (User user in users) {
       if (user.selected) {
         selectedUsers.add(user);
       }
     }
-    ProjectRepository.get()
+    await ProjectRepository.get()
         .setUsersToProject(selectedUsers, _currentProject.id);
+  }
+
+  Future updateNewProblemsToProject() async {
+    List<Problem> selectedProblems = [];
+    for (Problem problem in problems) {
+      if (problem.selected) {
+        selectedProblems.add(problem);
+      }
+    }
+    await ProjectRepository.get()
+        .setProblemsToProject(selectedProblems, _currentProject.id);
   }
 
   Future syncCurrentProject() async {
@@ -136,6 +168,11 @@ class ProjectBloc implements BlocBase {
     _currentProject =
         await ProjectRepository.get().getProject(_currentProject.id);
   }
+
+  // Future syncUnselectedProblems() async {
+  //   problems = await ProjectRepository.get()
+  //       .getAllUnselectedProblemsByProjectId(_currentProject.id);
+  // }
 
   Future syncProjects() async {
     await ProjectRepository.get().syncProjects();
@@ -165,8 +202,43 @@ class ProjectBloc implements BlocBase {
   }
 
   Future getUsers() async {
-    _inUser.add(
-        await ProjectRepository.get().getUsersByProjectId(_currentProject.id));
+    if (_currentProject != null) {
+      _inUser.add(await ProjectRepository.get()
+          .getUsersByProjectId(_currentProject.id));
+    }
+  }
+
+  Future getProblems() async {
+    if (_currentProject != null) {
+      _inProblems.add(await ProblemRepository.get()
+          .getSelectedProblemsByProjectId(_currentProject.id));
+    }
+  }
+
+  Future getCreateProblems() async {
+    if (selectedProblems != null) {
+      _inProblems.add(selectedProblems);
+    }
+  }
+
+  Future setProjectProblem(ProjectProblem projectProblem) async {
+    await ProjectRepository.get().setProjectProblem(projectProblem);
+  }
+
+  void setAllProblemsByCreateProject(Problem problem) {
+    if (problems[problems.indexOf(problem)].selected) {
+      problems[problems.indexOf(problem)].selected = false;
+    } else {
+      problems[problems.indexOf(problem)].selected = true;
+    }
+  }
+
+  void setProjectCreateProblem(Problem problem) {
+    if (selectedProblems.where((p) => p.id == problem.id).isEmpty) {
+      selectedProblems.add(problem);
+    } else {
+      selectedProblems.remove(problem);
+    }
   }
 
   Future getUnselectedUsers() async {
@@ -195,5 +267,17 @@ class ProjectBloc implements BlocBase {
 
   int getProjectCount() {
     return projectsCounter;
+  }
+
+  /// Delete project, milestones and tasks on server and in the local database
+  /// param: project object
+  Future deleteProjectAsync(Project project) async {
+    project.milestones =
+        await MileStoneRepository.get().getMilestonesByProjectId(project.id);
+    await TaskRepository.get().deleteProjectTaskByProjectAsync(project.id);
+    await MileStoneRepository.get().deleteMileStoneByProjectIdAsync(project.id);
+    await ProjectRepository.get()
+        .deleteUsersFromProjectByProjectIdAsync(project.id);
+    await ProjectRepository.get().deleteProjectByIdAsync(project.id);
   }
 }

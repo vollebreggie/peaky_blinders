@@ -16,7 +16,7 @@ Widget createNextTask(context, Task task) {
           color: Colors.transparent,
           child: Container(
             padding: EdgeInsets.only(left: 15, top: 40),
-            child: new Text(task.title,
+            child: new Text(task.title.length < 25 ? task.title : task.title.substring(0, 23) + "..",
                 textAlign: TextAlign.left,
                 style: TextStyle(color: Colors.white, fontSize: 20)),
             height: 98,
@@ -60,21 +60,38 @@ Widget createNextTask(context, Task task) {
                 width: MediaQuery.of(context).size.width * 0.35,
                 height: 110,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.only(left: 10, top: 35),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                            // maxHeight: 70,
-                            maxWidth: MediaQuery.of(context).size.width * 0.4),
-                        child: Center(
-                            child: Icon(Icons.check,
-                                size: 40, color: Colors.white)),
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.only(top: 25.0, left: 10),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          //maxHeight: 70,
+                          maxWidth: MediaQuery.of(context).size.width * 0.4),
+                      child: Center(
+                        child: new Text("Points",
+                            textAlign: TextAlign.center,
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 10)),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 10),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          // maxHeight: 70,
+                          maxWidth: MediaQuery.of(context).size.width * 0.4),
+                      child: Center(
+                        child: new Text(task.points.toString(),
+                            textAlign: TextAlign.center,
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 30)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               ),
             ),
           ),

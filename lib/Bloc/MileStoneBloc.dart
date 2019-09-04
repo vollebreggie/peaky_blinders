@@ -58,6 +58,12 @@ class MileStoneBloc implements BlocBase {
     }
   }
 
+  /// delete milestone from project
+  /// param: milestone id
+  Future deleteMileStoneById(int milestoneId) async {
+    await MileStoneRepository.get().deleteMileStoneByIdAsync(milestoneId);
+  }
+
   void createMileStone(projectId) {
     MileStone milestone = new MileStone(
         id: 0,

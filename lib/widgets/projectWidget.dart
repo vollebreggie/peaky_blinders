@@ -2,22 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
+import 'package:peaky_blinders/Bloc/TVBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
+import 'package:peaky_blinders/Pages/TVListPage.dart';
 import 'package:peaky_blinders/widgets/TrapeziumLeftClipper.dart';
 
 Widget createNextProject(context, Project project) {
-  return InkWell(
-    child: Stack(
+  final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+  return  Stack(
       children: <Widget>[
         Container(
           padding: EdgeInsets.only(
             left: 5.0,
-            top: 10,
+            top: 11,
             right: 5,
           ),
-          height: 150,
+          height: 149,
           width: MediaQuery.of(context).size.width,
           color: Colors.transparent,
           child: Container(
@@ -25,14 +27,14 @@ Widget createNextProject(context, Project project) {
             child: new Text(project.title,
                 textAlign: TextAlign.left,
                 style: TextStyle(color: Colors.white, fontSize: 25)),
-            height: 100,
+            height: 90,
             //color: Colors.transparent,
             decoration: BoxDecoration(
               image: DecorationImage(
                 alignment: Alignment.center,
                 fit: BoxFit.fill,
                 image: NetworkImage(
-                    'https://images.unsplash.com/photo-1519999482648-25049ddd37b1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2126&q=80'),
+                    projectBloc.getImageFromServer(project.imagePathServer)),
               ),
 
               color: Colors.grey[900],
@@ -128,20 +130,7 @@ Widget createNextProject(context, Project project) {
           ),
         )
       ],
-    ),
-    onTap: () async {
-      final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
-      final MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
-      final TaskBloc blocTask =
-          BlocProvider.of<TaskBloc>(context);
-      bloc.setCurrentProject(project);
-      blocTask.setProjectId(project.id);
-      
-      await milestoneBloc.getMilestonesByProjectId(project.id);
-      await navigateToProject(context, project);
-      
-    },
-  );
+    );
 }
 
 Future navigateToProject(context, project) async {
