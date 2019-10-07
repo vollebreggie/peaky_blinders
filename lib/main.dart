@@ -16,7 +16,6 @@ import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Pages/DashboardPage.dart';
 import 'package:peaky_blinders/Pages/IntroductionPage.dart';
 import 'package:peaky_blinders/Pages/LoginPage.dart';
-import 'package:peaky_blinders/Repositories/ErrorRepository.dart';
 import 'package:peaky_blinders/Repositories/UserRepository.dart';
 
 Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
@@ -41,9 +40,9 @@ Future initData(UserBloc userBloc, ProjectBloc projectBloc, TaskBloc taskBloc, R
   //retrieve data from server
   await userBloc.setUser();
   await projectBloc.syncEverything();
-  await routineTaskBloc.syncRoutineSettings();
-  await skillBloc.syncSkill();
-  await problemBloc.syncProblem();
+  routineTaskBloc.syncRoutineSettings();
+  skillBloc.syncSkill();
+  problemBloc.syncProblem();
   await userBloc.getCompletedTasksToday();
   await userBloc.getPointsGainedToday();
   await userBloc.getChartData();
@@ -54,6 +53,7 @@ Future initData(UserBloc userBloc, ProjectBloc projectBloc, TaskBloc taskBloc, R
 
   await routineTaskBloc.setRoutineSettings();
   await taskBloc.setTasksForToday();
+  await projectBloc.setProjects();
   await projectBloc.setProjectCount();
   await taskBloc.setNextTask();
   await taskBloc.createTasksTomorrow();

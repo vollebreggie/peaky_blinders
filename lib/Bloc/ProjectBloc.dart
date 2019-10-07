@@ -76,6 +76,7 @@ class ProjectBloc implements BlocBase {
   // Constructor
   //
   ProjectBloc() {
+    _projects = [];
     milestoneCounter = 0;
     taskCounter = 0;
     projectsCounter = 0;
@@ -263,6 +264,32 @@ class ProjectBloc implements BlocBase {
 
   Future setProjectCount() async {
     projectsCounter = await ProjectRepository.get().getProjectCount();
+  }
+
+  Future setProjects() async {
+    _projects = await ProjectRepository.get().getProjects();
+  }
+
+  Future changePriorityOfTasksToday(before, after) async {
+      Project project = _projects[before];
+      _projects.removeAt(before);
+      _projects.insert(after, project);
+    
+
+    for (int i = 0; i < _projects.length; i++) {
+      _projects[i].place = i;
+    }
+
+    List<Project> projects = [];
+    for (int i = 0; i < _projects.length; i++) {
+        projects.add(_projects[i]);
+    }
+
+    await ProjectRepository.get().changePriorityProjects(projects);
+  }
+
+  List<Project> getProjectsDragAndDrop() {
+    return _projects;
   }
 
   int getProjectCount() {

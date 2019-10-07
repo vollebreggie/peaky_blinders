@@ -74,6 +74,7 @@ class _RoutineListState extends State<RoutineListPage> {
     taskBloc.setRoutineTask(new RoutineTaskSetting(
         id: 0,
         title: "New RoutineTaskSetting",
+        description: "",
         points: 1,
         place: taskBloc.getRoutineTaskSettings().length,
         userId: userBloc.getUser().id,

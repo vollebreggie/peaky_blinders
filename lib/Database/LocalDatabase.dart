@@ -75,7 +75,7 @@ class LocalDatabase {
       await db.execute('CREATE UNIQUE INDEX routineId ON RoutineTask (id)');
 
       await db.execute(
-          'CREATE TABLE Project (id INTEGER, title TEXT, description TEXT, priority TEXT, image_local Text, imagePath TEXT, totalPoints INTEGER, completedPoints INTEGER, completed DATETIME, started DATETIME, lastUpdated DATETIME)');
+          'CREATE TABLE Project (id INTEGER, title TEXT, place INTEGER, description TEXT, priority TEXT, image_local Text, imagePath TEXT, totalPoints INTEGER, completedPoints INTEGER, completed DATETIME, started DATETIME, lastUpdated DATETIME)');
 
       await db.execute(
           'CREATE TABLE MileStone (id INTEGER, title TEXT, place INTEGER, image TEXT, startDate DATETIME, endDate DATETIME, completed DATETIME, projectId INTEGER, FOREIGN KEY(projectId) REFERENCES project(id))');
@@ -574,7 +574,7 @@ class LocalDatabase {
     var db = await _getDb();
     await db.transaction((txn) async {
       await txn.rawInsert(
-          'REPLACE INTO Project (id, title, description, priority, image_local, imagePath, totalPoints, completedPoints, completed, started, lastUpdated) VALUES("${project.id}", "${project.title}", "${project.description}", "${project.priority}", "${project.imagePathLocal}", "${project.imagePathServer}", "${project.totalPoints}", "${project.completedPoints}", "${project.completed}", "${project.started}", "${project.lastUpdated}")');
+          'REPLACE INTO Project (id, title, place, description, priority, image_local, imagePath, totalPoints, completedPoints, completed, started, lastUpdated) VALUES("${project.id}", "${project.title}", "${project.place}", "${project.description}", "${project.priority}", "${project.imagePathLocal}", "${project.imagePathServer}", "${project.totalPoints}", "${project.completedPoints}", "${project.completed}", "${project.started}", "${project.lastUpdated}")');
     });
   }
 

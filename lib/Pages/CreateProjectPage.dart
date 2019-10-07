@@ -213,6 +213,7 @@ class _CreateProject extends State<CreateProjectPage> {
                   final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
                   await projectBloc.postProject(_imageFile, userBloc.getUser());
                   await projectBloc.setProjectCount();
+                  await projectBloc.setProjects();
                   Navigator.pop(context, true);
                   Navigator.of(context).pop();
                 },

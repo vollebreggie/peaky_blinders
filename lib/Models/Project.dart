@@ -14,6 +14,7 @@ import 'package:peaky_blinders/Models/UserProject.dart';
 class Project {
   static final db_id = "id";
   static final db_title = "title";
+  static final db_place = "place";
   static final db_description = "description";
   static final db_completed_points = "completedPoints";
   static final db_total_points = "totalPoints";
@@ -25,7 +26,7 @@ class Project {
   static final db_enddate = "enddate";
   static final db_priority = "priority";
 
-  int id, completedPoints, totalPoints;
+  int id, completedPoints, totalPoints, place;
   DateTime lastUpdated, completed, started;
   String title, description, priority, imagePathServer, imagePathLocal;
   List<ProjectTask> tasks;
@@ -41,6 +42,7 @@ class Project {
       this.description,
       this.totalPoints,
       this.completedPoints,
+      this.place,
       this.priority,
       this.imagePathServer,
       this.imagePathLocal,
@@ -57,6 +59,7 @@ class Project {
             title: map[db_title],
             description: map[db_description],
             id: map[db_id],
+            place: map[db_place],
             //imagePathLocal: map[db_image_local],
             imagePathServer: map[db_image_server],
             completedPoints: map["completedPoints"],
@@ -97,6 +100,14 @@ class Project {
     // List<ProjectTask> tempTasks = tasks.where((t) => t.completed != null);
 
     return 0;
+  }
+
+  static List<Project> projectsFromMaps(List<dynamic> list) {
+    List<Project> newList = [];
+    for (dynamic jsonObject in list) {
+      newList.add(Project.fromMap(jsonObject));
+    }
+    return newList;
   }
 
   static List<UserProject> userProjectsFromMaps(List<dynamic> list) {
@@ -141,6 +152,15 @@ class Project {
     return jsonProblemsMap;
   }
 
+  static List<dynamic> projectsToMap(List<Project> projects) {
+    //TODO:: map tasks.
+    List<dynamic> jsonProjectsMap = [];
+    for (var project in projects) {
+      jsonProjectsMap.add(project.toMap());
+    }
+    return jsonProjectsMap;
+  }
+
   static List<dynamic> milestoneWithoutIdToMap(List<MileStone> milestones) {
     //TODO:: map tasks.
     List<dynamic> jsonMilestonesMap = [];
@@ -163,6 +183,7 @@ class Project {
       db_title: title,
       db_description: description,
       db_id: id,
+      db_place: place,
       "completedPoints": completedPoints,
       "totalPoints": totalPoints,
       "lastUpdated": lastUpdated != null ? lastUpdated.toIso8601String() : null,
@@ -170,7 +191,7 @@ class Project {
       db_started: started != null ? started.toIso8601String() : null,
       db_completed: completed != null ? completed.toIso8601String() : null,
       db_priority: priority,
-      "milestones": milestoneToMap(milestones),
+      "milestones": milestones != null ? milestoneToMap(milestones) : null,
       "users": usersToMap(users),
       "problems": problems != null ? problemsToMap(problems) : null
     };
@@ -180,6 +201,7 @@ class Project {
     return {
       db_title: title,
       db_description: description,
+      db_place: place,
       "completedPoints": completedPoints,
       "totalPoints": totalPoints,
       "lastUpdated": lastUpdated != null ? lastUpdated.toIso8601String() : null,

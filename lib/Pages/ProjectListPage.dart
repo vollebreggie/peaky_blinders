@@ -2,13 +2,13 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/TVBloc.dart';
 import 'package:peaky_blinders/Models/Project.dart';
-import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Pages/CreateProjectPage.dart';
 import 'package:peaky_blinders/Pages/ProjectPage.dart';
 import 'package:peaky_blinders/Pages/TVListPage.dart';
@@ -36,19 +36,12 @@ class _ProjectListState extends State<ProjectListPage> {
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
-      body: StreamBuilder<List<Project>>(
-        stream: projectBloc.outProject,
-        initialData: [],
-        builder: (BuildContext context, AsyncSnapshot<List<Project>> snapshot) {
-          projectBloc.getProjects();
-          return Container(
-            child: ListView.builder(
-              scrollDirection: Axis.vertical,
-              shrinkWrap: true,
-              itemCount: snapshot.data.length,
-              itemBuilder: (BuildContext context, int index) {
-                return InkWell(
-                  child: createNextProject(context, snapshot.data[index]),
+      body: new DragAndDropList<Project>(
+        projectBloc.getProjectsDragAndDrop(),
+        itemBuilder: (BuildContext context, item) {
+          return new SizedBox(
+            child: InkWell(
+              child: createNextProject(context, item),
                   onTap: () async {
                     final ProjectBloc bloc =
                         BlocProvider.of<ProjectBloc>(context);
@@ -56,36 +49,39 @@ class _ProjectListState extends State<ProjectListPage> {
                         BlocProvider.of<MileStoneBloc>(context);
                     final TaskBloc blocTask =
                         BlocProvider.of<TaskBloc>(context);
-                    bloc.setCurrentProject(snapshot.data[index]);
-                    blocTask.setProjectId(snapshot.data[index].id);
+                    bloc.setCurrentProject(item);
+                    blocTask.setProjectId(item.id);
 
                     await milestoneBloc
-                        .getMilestonesByProjectId(snapshot.data[index].id);
-                    await navigateToProject(context, snapshot.data[index]);
+                        .getMilestonesByProjectId(item.id);
+                    await navigateToProject(context, item);
                   },
-                  onLongPress: () async {
-                    final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
-                    tvBloc.setOwner();
-                    tvBloc.existingProject = true;
-                    tvBloc.projectImage = snapshot.data[index].imagePathServer;
-                    tvBloc.projectName = snapshot.data[index].title;
-                    tvBloc.project = snapshot.data[index];
-                    tvBloc.users = snapshot.data[index].users;
+                  // onLongPress: () async {
+                  //   final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
+                  //   tvBloc.setOwner();
+                  //   tvBloc.existingProject = true;
+                  //   tvBloc.projectImage = item.imagePathServer;
+                  //   tvBloc.projectName = item.title;
+                  //   tvBloc.project = item;
+                  //   tvBloc.users = item.users;
 
-                    tvBloc.milestones = await tvBloc
-                        .getMilestonesForProject(snapshot.data[index].id);
-                    tvBloc.milestoneCounter = tvBloc.milestones.length;
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => TVListPage()));
-                  },
+                  //   tvBloc.milestones = await tvBloc
+                  //       .getMilestonesForProject(item.id);
+                  //   tvBloc.milestoneCounter = tvBloc.milestones.length;
+                  //   Navigator.push(context,
+                  //       MaterialPageRoute(builder: (context) => TVListPage()));
+                  // },
                   onDoubleTap: () {
-                    _showDeleteDialog(context, snapshot.data[index]);
+                    _showDeleteDialog(context, item);
                   },
-                );
-              },
             ),
           );
         },
+        onDragFinish: (before, after) async {
+          await projectBloc.changePriorityOfTasksToday(before, after);
+        },
+        canBeDraggedTo: (one, two) => true,
+        dragElevation: 8.0,
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),

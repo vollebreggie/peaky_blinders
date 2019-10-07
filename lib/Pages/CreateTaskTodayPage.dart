@@ -196,8 +196,6 @@ class _CreateTaskTodayState extends State<CreateTaskTodayPage> {
                                               alignment:
                                                   FractionalOffset.bottomLeft,
                                               child: Container(
-                                                padding:
-                                                    EdgeInsets.only(left: 20),
                                                 child: DropdownButton<
                                                         ProjectDropdown>(
                                                     style: new TextStyle(

@@ -78,8 +78,8 @@ class MyHomePageState extends State<MyHomePage> {
     final RoutineSettingBloc routineTaskBloc =
         BlocProvider.of<RoutineSettingBloc>(context);
     await userBloc.setUser();
-    await projectBloc.syncEverything();
-    await routineTaskBloc.syncRoutineSettings();
+    projectBloc.syncEverything();
+    routineTaskBloc.syncRoutineSettings();
     await userBloc.getCompletedTasksToday();
     await userBloc.getPointsGainedToday();
     await userBloc.getChartData();
@@ -89,6 +89,7 @@ class MyHomePageState extends State<MyHomePage> {
     //set data for pages
     await routineTaskBloc.setRoutineSettings();
     await taskBloc.setTasksForToday();
+    await projectBloc.setProjects();
     await projectBloc.setProjectCount();
     await taskBloc.setNextTask();
   }

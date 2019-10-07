@@ -9,8 +9,8 @@ import 'package:peaky_blinders/Repositories/ParsedResponse.dart';
 class BaseRepository {
   final int NO_INTERNET = 404;
   int loggedInUserId = 0;
-  static final String webUrl = "http://192.168.178.10:45455/";
-  //static final String webUrl = "http://kataskopos.nl/";
+  //static final String webUrl = "http://192.168.178.10:45455/";
+  static final String webUrl = "http://kataskopos.nl/";
   //static final String webUrl = "http://192.168.0.104:45455/";
   get weburl => webUrl;
   LocalDatabase database;

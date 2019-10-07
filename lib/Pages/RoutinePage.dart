@@ -384,7 +384,7 @@ class _RoutineState extends State<RoutinePage> {
                                     //padding: EdgeInsets.all(8.0),
                                     width:
                                         MediaQuery.of(context).size.width * 0.2,
-                                    height: 56,
+                                    height: 58,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,

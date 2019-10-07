@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:async/async.dart';
 import 'package:dio/dio.dart';
@@ -47,6 +48,28 @@ class ProjectRepository extends BaseRepository {
       print(resp.toString());
     });
     print(response);
+  }
+
+Future changePriorityProjects(List<Project> projects) async {
+
+    http.Response response = await http.put(
+        super.weburl + "api/Projects/priority",
+        body: jsonEncode(Project.projectsToMap(projects)),
+        headers: {
+          "Content-Type": "application/json",
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {
+      print(resp.toString());
+    });
+
+    ParsedResponse parsedResponse =
+        interceptResponse<Project>(response, true);
+
+    if (parsedResponse.isOk()) {
+      for (Project project in parsedResponse.body) {
+        database.updateProject(project);
+      }
+    }
   }
 
   Future syncEverything() async {
@@ -160,6 +183,7 @@ class ProjectRepository extends BaseRepository {
   }
 
   Future uploadImage(File imageFile, Project project) async {
+    try{
     // open a bytestream
     var stream =
         new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
@@ -186,6 +210,9 @@ class ProjectRepository extends BaseRepository {
 
     await database.updateProject(Project.fromMap(
         json.decode(await response.stream.transform(utf8.decoder).first)));
+    }catch(ex) {
+    }
+
   }
 
   Future<int> getProjectCount() async {

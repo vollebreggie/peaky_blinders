@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage>
     await problemBloc.setProblems();
     await skillBloc.getSkillsForGraph(userBloc.getUser().amountOfSkills);
     await skillBloc.syncSkills();
-     
+    await projectBloc.setProjects();
     pageBloc.controller = new PageController(
       initialPage: 0,
       keepPage: true,
