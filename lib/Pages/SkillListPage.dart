@@ -54,7 +54,14 @@ class _SkillListState extends State<SkillListPage> {
         backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
         child: const Icon(Icons.add),
         onPressed: () async {
-          skillBloc.setSkill(new Skill(id: 0, points: 0, title: "", userId: 0, place: 0, description: "", imagePathServer: null));
+          skillBloc.setSkill(new Skill(
+              id: 0,
+              points: 0,
+              title: "",
+              userId: 0,
+              place: 0,
+              description: "",
+              imagePathServer: null));
           await navigateToCreateSKillPage(context);
         },
       ),
@@ -92,9 +99,7 @@ class _SkillListState extends State<SkillListPage> {
                 color: Colors.red,
                 onPressed: () async {
                   await skillBloc.removeSkill(skill);
-                  setState(() {
-                    
-                  });
+                  setState(() {});
                   Navigator.of(context).pop();
                 },
                 splashColor: Colors.grey,

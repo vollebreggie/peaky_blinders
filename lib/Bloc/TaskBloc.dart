@@ -17,7 +17,7 @@ class TaskBloc implements BlocBase {
   List<Task> _tasksTomorrow;
   List<Skill> selectedSkills;
   List<Skill> skills;
-
+  String searchText;
   Task _nextTask;
   ProjectTask _currentProjectTask;
   int projectId = 0;
@@ -47,6 +47,11 @@ class TaskBloc implements BlocBase {
   void dispose() {
     _actionProjectController.close();
     _taskController.close();
+  }
+
+  void setSearchExistingTask(String search) async {
+    searchText = search;
+    await getExistingTasksForToday();
   }
 
   Future changePriorityOfTasksToday(before, after) async {
@@ -150,7 +155,7 @@ class TaskBloc implements BlocBase {
     _currentProjectTask.skills = selectedSkills;
   }
 
-   Future getCreateSkills() async {
+  Future getCreateSkills() async {
     if (selectedSkills != null) {
       _inSkill.add(selectedSkills);
     }
@@ -177,6 +182,10 @@ class TaskBloc implements BlocBase {
       _inSkill.add(await SkillRepository.get()
           .getSelectedSkillsForProjectTaskById(_currentProjectTask.id));
     }
+  }
+
+  Future setTaskNonActive(ProjectTask projectTask) async {
+    await TaskRepository.get().setProjectTaskNonActive(projectTask.id);
   }
 
   ProjectTask getProjectTask() {
@@ -208,7 +217,12 @@ class TaskBloc implements BlocBase {
   }
 
   Future getExistingTasksForToday() async {
-    _inTask.add(await TaskRepository.get().getExistingTasksForToday());
+    if (searchText.isNotEmpty || searchText != "") {
+      _inTask.add(await TaskRepository.get()
+          .getQueriedExistingTasksForToday(searchText));
+    } else {
+      _inTask.add(await TaskRepository.get().getExistingTasksForToday());
+    }
   }
 
   Future setProjectTaskForTomorrow(ProjectTask task) async {

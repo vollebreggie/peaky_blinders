@@ -2,17 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/ProblemBloc.dart';
-import 'package:peaky_blinders/Bloc/SkillBloc.dart';
-import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Models/Problem.dart';
-import 'package:peaky_blinders/Models/Skill.dart';
-import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Pages/ProblemCreatePage.dart';
 import 'package:peaky_blinders/Pages/ProblemPage.dart';
-import 'package:peaky_blinders/Pages/SkillCreatePage.dart';
-import 'package:peaky_blinders/Pages/SkillPage.dart';
 import 'package:peaky_blinders/widgets/createProblemWidget.dart';
-import 'package:peaky_blinders/widgets/createSkillWidget.dart';
 
 class ProblemListPage extends StatefulWidget {
   @override

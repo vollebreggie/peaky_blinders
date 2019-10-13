@@ -7,39 +7,62 @@ import 'package:peaky_blinders/Pages/CreateTaskPage.dart';
 import 'package:peaky_blinders/Pages/Taskpage.dart';
 import 'package:peaky_blinders/widgets/ExistingTaskWidget.dart';
 
-class ExistingTaskListPage extends StatelessWidget {
+class ExistingTaskListPage extends StatefulWidget {
+  // ExamplePage({ Key key }) : super(key: key);
+  @override
+  ExistingTaskListState createState() => new ExistingTaskListState();
+}
+
+class ExistingTaskListState extends State<ExistingTaskListPage> {
+  Widget _appBarTitle = new Text('Search Task..');
+  final TextEditingController _filter = new TextEditingController();
+  String _searchText = "";
+
   @override
   Widget build(BuildContext context) {
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+
+    _filter.addListener(() {
+      if (_filter.text.isEmpty) {
+        setState(() {
+          _searchText = "";
+        });
+      } else {
+        setState(() {
+          _searchText = _filter.text;
+          taskBloc.setSearchExistingTask(_searchText);
+        });
+      }
+    });
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
       appBar: AppBar(
           automaticallyImplyLeading: true,
           backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
+          centerTitle: true,
+          title: InkWell(child: _appBarTitle, onTap: _searchPressed),
           leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () => {
                     Navigator.pop(context, false),
                   })),
-      body: Center(
-        child: StreamBuilder<List<Task>>(
-          stream: taskBloc.outTask,
-          initialData: [],
-          builder: (BuildContext context, AsyncSnapshot<List<Task>> snapshot) {
-            taskBloc.getExistingTasksForToday();
-            return Container(
-              child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: snapshot.data.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return createExistingTaskWidget(
-                      context, snapshot.data[index]);
-                },
-              ),
-            );
-          },
-        ),
+      body: StreamBuilder<List<Task>>(
+        stream: taskBloc.outTask,
+        initialData: [],
+        builder: (BuildContext context, AsyncSnapshot<List<Task>> snapshot) {
+          taskBloc.getExistingTasksForToday();
+          return Container(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: snapshot.data.length,
+              itemBuilder: (BuildContext context, int index) {
+                return createExistingTaskWidget(context, snapshot.data[index]);
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -51,6 +74,28 @@ class ExistingTaskListPage extends StatelessWidget {
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => CreateTaskPage()));
+  }
+
+  void _searchPressed() {
+    setState(() {
+      if (this._appBarTitle.runtimeType == Text) {
+        this._appBarTitle = new TextField(
+          controller: _filter,
+          style: new TextStyle(color: Colors.white),
+          decoration: new InputDecoration(
+            border: InputBorder.none,
+            filled: true,
+            prefixIcon: new Icon(Icons.search, color: Colors.white),
+            hintText: 'Search...',
+          ),
+          cursorColor: Colors.white,
+          autofocus: true,
+        );
+      } else {
+        this._appBarTitle = new Text('Search Example');
+        _filter.clear();
+      }
+    });
   }
 
   void _showDialog(context) {

@@ -41,7 +41,7 @@ Widget createTask(context, Task task) {
             clipper: TrapeziumClipper(),
             child: Container(
               decoration: new BoxDecoration(
-                  color: Color.fromRGBO(8, 68, 22, 1.0),
+                  color: task.completed == null ? Color.fromRGBO(8, 68, 22, 1.0) : Color.fromRGBO(3, 3, 3, 1.0),
                   borderRadius: new BorderRadius.only(
                       topLeft: const Radius.circular(10.0),
                       bottomLeft: const Radius.circular(10.0))),

@@ -3,12 +3,10 @@ import 'dart:io';
 
 import 'package:peaky_blinders/Database/LocalDatabase.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
-import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
 import 'package:peaky_blinders/Models/ProjectTaskSkill.dart';
 import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/Task.dart';
-import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Repositories/BaseRepository.dart';
 import 'package:http/http.dart' as http;
 import 'package:peaky_blinders/Repositories/ParsedResponse.dart';
@@ -125,6 +123,24 @@ class TaskRepository extends BaseRepository {
 
     if (parsedResponse.isOk()) {
       await database.updateRoutineTask(parsedResponse.body);
+    }
+  }
+
+  Future<List<Task>> getQueriedExistingTasksForToday(String searchText) async {
+    return await database.getQueriedExistingTasksForToday(searchText);
+  }
+
+  Future setProjectTaskNonActive(int projectTaskId) async {
+    http.Response response = await http.get(
+        super.weburl + "api/ProjectTasks/non-active/$projectTaskId",
+        headers: {
+          HttpHeaders.authorizationHeader: await getAuthHeader()
+        }).catchError((resp) {});
+    ParsedResponse parsedResponse =
+        interceptResponse<ProjectTask>(response, false);
+
+    if (parsedResponse.isOk()) {
+      await database.updateProjectTask(parsedResponse.body);
     }
   }
 
@@ -284,7 +300,8 @@ class TaskRepository extends BaseRepository {
 
     if (parsedResponse.isOk()) {
       await database.updateProjectTask(parsedResponse.body);
-      await SkillRepository.get().syncProjectTaskSkillsProjectTasksById((parsedResponse.body as ProjectTask).id);
+      await SkillRepository.get().syncProjectTaskSkillsProjectTasksById(
+          (parsedResponse.body as ProjectTask).id);
     }
   }
 

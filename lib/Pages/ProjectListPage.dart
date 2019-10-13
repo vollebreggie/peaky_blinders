@@ -72,7 +72,7 @@ class _ProjectListState extends State<ProjectListPage> {
                   //       MaterialPageRoute(builder: (context) => TVListPage()));
                   // },
                   onDoubleTap: () {
-                    _showDeleteDialog(context, item);
+                    _showOptionsDialog(context, item);
                   },
             ),
           );
@@ -152,6 +152,80 @@ class _ProjectListState extends State<ProjectListPage> {
     );
   }
 
+  _showOptionsDialog(context, Project project) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Options",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            _loadingInProgress ? CircularProgressIndicator() : new Container(),
+            ButtonTheme(
+              minWidth: 100.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Color.fromRGBO(47, 87, 53, 0.8),
+                onPressed: () async {
+                    final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
+                    tvBloc.setOwner();
+                    tvBloc.existingProject = true;
+                    tvBloc.projectImage = project.imagePathServer;
+                    tvBloc.projectName = project.title;
+                    tvBloc.project = project;
+                    tvBloc.users = project.users;
+
+                    tvBloc.milestones = await tvBloc
+                        .getMilestonesForProject(project.id);
+                    tvBloc.milestoneCounter = tvBloc.milestones.length;
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => TVListPage()));
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Tv'),
+                ),
+              ),
+            ),
+            ButtonTheme(
+              minWidth: 100.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  await _showDeleteDialog(context, project);
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showDeleteDialog(context, Project project) {
     ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
     showDialog(
@@ -160,13 +234,14 @@ class _ProjectListState extends State<ProjectListPage> {
         // return object of type Dialog
         return AlertDialog(
           title: new Text(
-            "Delete Project?",
+            "Are you sure?",
             textAlign: TextAlign.center,
           ),
           actions: <Widget>[
             _loadingInProgress ? CircularProgressIndicator() : new Container(),
+
             ButtonTheme(
-              minWidth: 150.0,
+              minWidth: 100.0,
               height: 40.0,
               child: RaisedButton(
                 color: Colors.red,

@@ -10,7 +10,7 @@ class Task {
   static final db_started = "started";
   static final db_completed = "completed";
 
-  int id, points, place;
+  int id, points, place, todayPlace;
   String title, description;
   DateTime completed, started;
   List<Skill> skills;

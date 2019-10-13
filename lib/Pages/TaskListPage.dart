@@ -5,6 +5,7 @@ import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/Task.dart';
 import 'package:peaky_blinders/Pages/CreateTaskTodayPage.dart';
 import 'package:peaky_blinders/Pages/ExistingTasksPage.dart';
@@ -36,7 +37,11 @@ class _TaskListState extends State<TaskListPage> {
                 navigateToTaskPage(context);
               },
               onDoubleTap: () async {
-                _showDeleteDialog(context, item);
+                if (item.runtimeType == ProjectTask) {
+                  _showOptionsDialog(context, item);
+                } else if(item.runtimeType == RoutineTask){
+                  _showDeleteDialog(context, item);
+                }
               },
             ),
           );
@@ -157,6 +162,74 @@ class _TaskListState extends State<TaskListPage> {
         MaterialPageRoute(builder: (context) => ExistingTaskListPage()));
   }
 
+  void _showOptionsDialog(context, Task task) {
+    TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Options Task",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            ButtonTheme(
+              minWidth: 100.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Color.fromRGBO(47, 87, 53, 0.8),
+                onPressed: () async {
+                  await taskBloc.setTaskNonActive(task);
+                  await taskBloc.setTasksForToday();
+                  await taskBloc.setNextTask();
+                  setState(() {
+                    //taskBloc.getTasksToday();
+                  });
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Non-Active'),
+                ),
+              ),
+            ),
+            ButtonTheme(
+              minWidth: 100.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  _showDeleteDialog(context, task);
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showDeleteDialog(context, Task task) {
     TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
     showDialog(
@@ -165,7 +238,7 @@ class _TaskListState extends State<TaskListPage> {
         // return object of type Dialog
         return AlertDialog(
           title: new Text(
-            "Delete Task?",
+            task.runtimeType == ProjectTask ? "Are you sure?" : "Delete Task",
             textAlign: TextAlign.center,
           ),
           actions: <Widget>[
