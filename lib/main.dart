@@ -29,6 +29,8 @@ Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
       personalBloc.setUser(user);
       _defaultHome = IntroductionPage();
     }
+    await initData(userBloc, projectBloc, taskBloc, routineTaskBloc, skillBloc,
+        problemBloc);
   }
   return _defaultHome;
 }
@@ -37,10 +39,10 @@ Future initData(UserBloc userBloc, ProjectBloc projectBloc, TaskBloc taskBloc, R
     ProblemBloc problemBloc) async {
   //retrieve data from server
   await userBloc.setUser();
-  await projectBloc.syncEverything();
-  routineTaskBloc.syncRoutineSettings();
-  skillBloc.syncSkill();
-  problemBloc.syncProblem();
+  //projectBloc.syncEverything();
+  //routineTaskBloc.syncRoutineSettings();
+  //skillBloc.syncSkill();
+  //problemBloc.syncProblem();
   await userBloc.getCompletedTasksToday();
   await userBloc.getPointsGainedToday();
   await userBloc.getChartData();
