@@ -29,8 +29,6 @@ Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
       personalBloc.setUser(user);
       _defaultHome = IntroductionPage();
     }
-    await initData(userBloc, projectBloc, taskBloc, routineTaskBloc, skillBloc,
-        problemBloc);
   }
   return _defaultHome;
 }
