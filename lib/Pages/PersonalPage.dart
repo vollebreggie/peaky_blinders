@@ -95,136 +95,140 @@ class _PersonalPageState extends State<PersonalPage> {
     return new Scaffold(
       // resizeToAvoidBottomPadding: true,
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
-      body: new Container(
-        // color: Colors.white,
+      body: SingleChildScrollView(
         child: new Container(
-          child: new Center(
-            child: new Column(children: [
-              new Padding(padding: EdgeInsets.only(top: 5.0)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  new ClipRRect(
-                    borderRadius: new BorderRadius.circular(8.0),
-                    child: _imageFile == null
-                        ? new CachedNetworkImage(
-                            fit: BoxFit.fill,
-                            height: 40,
-                            width: 40,
-                            imageUrl:
-                                blocUser.getImageFromServer(_tempUser.image),
-                            placeholder: (context, url) =>
-                                new CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                new Icon(Icons.error),
-                          )
-                        : Image.file(_imageFile,
-                            fit: BoxFit.fill, width: 40, height: 40),
-                  ),
-                  new Flexible(
-                    child: new Theme(
-                      data: new ThemeData(
-                          primaryColor: Colors.white70,
-                          accentColor: Colors.white70,
-                          hintColor: Colors.white30),
-                      child: new TextField(
-                        controller: firstNameController,
-                        cursorColor: Colors.white,
-                        decoration: InputDecoration(
-                            //hintText: blocUser.getUser() != null ? blocUser.getUser().firstName : "Your name",
-                            //filled: true,
-                            suffixIcon: IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  debugPrint('222');
-                                })),
-                        style: new TextStyle(
-                            fontFamily: "Poppins", color: Colors.white),
-                      ),
+          // color: Colors.white,
+          child: new Container(
+            child: new Center(
+              child: new Column(children: [
+                new Padding(padding: EdgeInsets.only(top: 5.0)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    new ClipRRect(
+                      borderRadius: new BorderRadius.circular(8.0),
+                      child: _imageFile == null
+                          ? new CachedNetworkImage(
+                              fit: BoxFit.fill,
+                              height: 40,
+                              width: 40,
+                              imageUrl:
+                                  blocUser.getImageFromServer(_tempUser.image),
+                              placeholder: (context, url) =>
+                                  new CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  new Icon(Icons.error),
+                            )
+                          : Image.file(_imageFile,
+                              fit: BoxFit.fill, width: 40, height: 40),
                     ),
-                  ),
-                ],
-              ),
-              Row(
-                children: <Widget>[
-                  InkWell(
-                    child: createTask(context, "Tasks this week",
-                        blocUser.completedTask.toString(), Icons.check),
-                  ),
-                  InkWell(
-                    child: createTask(context, "Points this week",
-                        blocUser.completedPoints.toString(), Icons.check),
-                  ),
-                ],
-              ),
-              Row(
-                children: <Widget>[
-                  InkWell(
-                    child: createTask(context, "Skills",
-                        skillBloc.getSkillCount().toString(), Icons.build),
-                    onTap: () async {
-                      await skillBloc.setSkills();
-                      await navigateToSkillListPage(context);
-                    },
-                  ),
-                  InkWell(
-                    child: createTask(
-                        context,
-                        "Problems",
-                        problemBloc.getProblemCount().toString(),
-                        Icons.warning),
-                    onTap: () async {
-                      await problemBloc.setProblems();
-                      await navigateToProblemListPage(context);
-                    },
-                  ),
-                ],
-              ),
-              StreamBuilder<List<Skill>>(
-                stream: skillBloc.outSkill,
-                initialData: [],
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<Skill>> snapshot) {
-                      skillBloc.getSkillsForGraph(blocUser.getUser().amountOfSkills);
-                  return createSkillsStatistics(context, snapshot.data);
-                },
-              ),
-              InkWell(
-                child: Container(
-                  padding: EdgeInsets.only(left: 5.0, top: 25, right: 5),
-                  height: 100,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.transparent,
-                  child: Card(
-                    elevation: 8,
-                    color: Colors.transparent,
-                    margin: EdgeInsets.zero,
-                    child: Container(
-                      //padding: EdgeInsets.only(left: 90.0),
-                      child: Center(
-                        child: Text(
-                          "Log out",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontSize: 25),
+                    new Flexible(
+                      child: new Theme(
+                        data: new ThemeData(
+                            primaryColor: Colors.white70,
+                            accentColor: Colors.white70,
+                            hintColor: Colors.white30),
+                        child: new TextField(
+                          controller: firstNameController,
+                          cursorColor: Colors.white,
+                          decoration: InputDecoration(
+                              //hintText: blocUser.getUser() != null ? blocUser.getUser().firstName : "Your name",
+                              //filled: true,
+                              suffixIcon: IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    debugPrint('222');
+                                  })),
+                          style: new TextStyle(
+                              fontFamily: "Poppins", color: Colors.white),
                         ),
                       ),
-                      height: 80,
-                      //color: Colors.transparent,
-                      decoration: new BoxDecoration(
-                        color: Color.fromRGBO(128, 0, 0, 1),
-                        borderRadius: new BorderRadius.only(
-                            topRight: const Radius.circular(10.0),
-                            bottomRight: const Radius.circular(10.0),
-                            topLeft: const Radius.circular(20.0),
-                            bottomLeft: const Radius.circular(20.0)),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    InkWell(
+                      child: createTask(context, "Tasks this week",
+                          blocUser.completedTask.toString(), Icons.check),
+                    ),
+                    InkWell(
+                      child: createTask(context, "Points this week",
+                          blocUser.completedPoints.toString(), Icons.check),
+                    ),
+                  ],
+                ),
+                createStatistics(context),
+                Row(
+                  children: <Widget>[
+                    InkWell(
+                      child: createTask(context, "Skills",
+                          skillBloc.getSkillCount().toString(), Icons.build),
+                      onTap: () async {
+                        await skillBloc.setSkills();
+                        await navigateToSkillListPage(context);
+                      },
+                    ),
+                    InkWell(
+                      child: createTask(
+                          context,
+                          "Problems",
+                          problemBloc.getProblemCount().toString(),
+                          Icons.warning),
+                      onTap: () async {
+                        await problemBloc.setProblems();
+                        await navigateToProblemListPage(context);
+                      },
+                    ),
+                  ],
+                ),
+                StreamBuilder<List<Skill>>(
+                  stream: skillBloc.outSkill,
+                  initialData: [],
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<Skill>> snapshot) {
+                    skillBloc
+                        .getSkillsForGraph(blocUser.getUser().amountOfSkills);
+                    return createSkillsStatistics(context, snapshot.data);
+                  },
+                ),
+                InkWell(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 5.0, top: 25, right: 5),
+                    height: 100,
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.transparent,
+                    child: Card(
+                      elevation: 8,
+                      color: Colors.transparent,
+                      margin: EdgeInsets.zero,
+                      child: Container(
+                        //padding: EdgeInsets.only(left: 90.0),
+                        child: Center(
+                          child: Text(
+                            "Log out",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 25),
+                          ),
+                        ),
+                        height: 80,
                         //color: Colors.transparent,
+                        decoration: new BoxDecoration(
+                          color: Color.fromRGBO(128, 0, 0, 1),
+                          borderRadius: new BorderRadius.only(
+                              topRight: const Radius.circular(10.0),
+                              bottomRight: const Radius.circular(10.0),
+                              topLeft: const Radius.circular(20.0),
+                              bottomLeft: const Radius.circular(20.0)),
+                          //color: Colors.transparent,
+                        ),
                       ),
                     ),
                   ),
+                  onTap: () async => logout(context),
                 ),
-                onTap: () async => logout(context),
-              ),
-            ]),
+              ]),
+            ),
           ),
         ),
       ),

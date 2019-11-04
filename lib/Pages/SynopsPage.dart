@@ -93,7 +93,6 @@ class _SynopsPageState extends State<SynopsPage> {
                 await changeNextTask();
               },
             ),
-            createStatistics(context),
             Row(
               children: <Widget>[
                 InkWell(

@@ -19,37 +19,37 @@ class ErrorRepository extends BaseRepository {
     database = LocalDatabase.get();
   }
 
-  Message createErrorMessage() {
-    Message message = new Message();
-    return message;
+  ErrorLog createErrorMessage() {
+    ErrorLog errorLog = new ErrorLog();
+    return errorLog;
   }
 
   System getSystem() {
     return new System(
         id: 0,
         name: "PeakyApp",
-        version: "0.0.1",
-        releaseDate: DateTime.parse("2019-05-31 00:00:00"));
+        version: "1.0.0",
+        releaseDate: DateTime.now());
   }
 
   Future sendErrorMessage(String description, String stacktrace) async {
-    Log log = new Log(id: 0, description: description, stacktrace: stacktrace, solved: false);
 
-   Message message = new Message();
-   message.id = 0;
-   message.log = log;
-   message.system = getSystem();
-   message.userId = user != null ? user.id : 1;
+   ErrorLog errorLog = new ErrorLog();
+   errorLog.id = 0;
+   errorLog.message = description;
+   errorLog.stackTrace = stacktrace;
+   errorLog.systemInfo = getSystem();
+   errorLog.userId = user != null ? user.id : 1;
         
 
-    http.Response response = await http.post(super.weburl + "api/Messages",
-        body: jsonEncode(message.toMap()),
+    http.Response response = await http.post(super.weburl + "api/ErrorLog",
+        body: jsonEncode(errorLog.toMap()),
         headers: {"Content-Type": "application/json"}).catchError((resp) {});
     print(response);
   }
 
-  Future sendError(Message message) async {
-    String jsonMap = jsonEncode(message.toMap());
+  Future sendError(ErrorLog errorLog) async {
+    String jsonMap = jsonEncode(errorLog.toMap());
     await http.post(super.weburl + "api/Message",
         body: jsonMap,
         headers: {"Content-Type": "application/json"}).catchError((resp) {});

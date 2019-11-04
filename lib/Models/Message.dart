@@ -2,26 +2,32 @@ import 'package:peaky_blinders/Models/Log.dart';
 import 'package:peaky_blinders/Models/System.dart';
 import 'package:peaky_blinders/Models/User.dart';
 
-class Message {
-  int id, userId;
+class ErrorLog {
+  int id, userId, statusCode;
   User user;
-  Log log;
-  System system;
+  String stackTrace, message, innerException, typeException;
+  System systemInfo;
 
-  Message({id, title, userId, log, system});
+  ErrorLog({id, statusCode, stackTrace, innerException, typeException, userId, log, systemInfo});
 
-  factory Message.fromMap(Map<String, dynamic> map) => new Message(
+  factory ErrorLog.fromMap(Map<String, dynamic> map) => new ErrorLog(
       id: map["id"],
       userId: map["userId"],
-      log: Log.fromMap(map["log"]),
-      system: System.fromMap(map["system"]));
+      innerException: map["innerException"],
+      typeException: map["typeException"],
+      stackTrace: map["stackTrace"],
+      systemInfo: System.fromMap(map["systemInfo"]));
 
   Map<String, dynamic> toMap() {
     return {
       "id": id,
       "userId": userId,
-      "log": log.toMap(),
-      "system": system.toMap()
+      "statusCode": statusCode,
+      "stackTrace": stackTrace,
+      "message": message,
+      "innerException": innerException,
+      "typeException": typeException,
+      "systemInfo": systemInfo.toMap()
     };
   }
 }

@@ -16,6 +16,7 @@ import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Pages/DashboardPage.dart';
 import 'package:peaky_blinders/Pages/IntroductionPage.dart';
 import 'package:peaky_blinders/Pages/LoginPage.dart';
+import 'package:peaky_blinders/Repositories/ErrorRepository.dart';
 import 'package:peaky_blinders/Repositories/UserRepository.dart';
 
 Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
@@ -63,11 +64,7 @@ Future initData(UserBloc userBloc, ProjectBloc projectBloc, TaskBloc taskBloc, R
   await skillBloc.syncSkills();
 }
 
-Future<Null> main() async {
-  FlutterError.onError = (FlutterErrorDetails details) async {
-    //Zone.current.handleUncaughtError();
-     //   details.exception.message, details.exception.stack);
-  };
+void main() async {
 
   runZoned<Future<Null>>(() async {
     //load data, then app
@@ -78,6 +75,7 @@ Future<Null> main() async {
     RoutineSettingBloc routineTaskBloc = new RoutineSettingBloc();
     SkillBloc skillBloc = new SkillBloc();
     ProblemBloc problemBloc = new ProblemBloc();
+    await ErrorRepository.get().sendErrorMessage("testing", "");
     runApp(new PeakyApp(
         await selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
             personalBloc, skillBloc, problemBloc),
@@ -89,7 +87,9 @@ Future<Null> main() async {
         skillBloc,
         problemBloc));
   }, onError: (error, stackTrace) async {
-    //await ErrorRepository.get().sendErrorMessage(error.message.toString(), stackTrace.toString());
+    if(error){
+        await ErrorRepository.get().sendErrorMessage(error.toString(), "");
+    }
   });
 }
 

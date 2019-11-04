@@ -32,9 +32,11 @@ class _TaskListState extends State<TaskListPage> {
             child: InkWell(
               child: createTodayTask(context, item),
               onTap: () async {
+                if (item.runtimeType == ProjectTask) {
                 taskBloc.setProjectTask(item);
                 taskBloc.getTasksToday().removeWhere((t) => t == item);
                 navigateToTaskPage(context);
+                }
               },
               onDoubleTap: () async {
                 if (item.runtimeType == ProjectTask) {
