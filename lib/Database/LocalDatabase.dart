@@ -673,7 +673,9 @@ class LocalDatabase {
     List<Task> tasks = [];
     tasks.addAll(await getRoutineTasksForTomorrow());
     tasks.addAll(await getProjectTaskForTomorrow());
-    tasks.sort((a, b) => a.place.compareTo(b.place));
+    if (tasks.length > 0) {
+      tasks.sort((a, b) => a.place.compareTo(b.place));
+    }
     return tasks;
   }
 
@@ -694,7 +696,7 @@ class LocalDatabase {
   Future<List<ProjectTask>> getProjectTaskForTomorrow() async {
     List<ProjectTask> tasks = [];
     var projectResult = await db.rawQuery(
-        "SELECT pt.id, pt.title, pt.description, pt.completed, pt.started, pt.completed, pt.priority, pt.points, pt.userId, pt.milestoneId, pt.projectId FROM ProjectTask pt INNER JOIN Project p on p.id = pt.projectId WHERE (pt.completed == 'null' AND pt.started == 'null') OR (pt.completed == 'null' AND CAST(strftime('%s', pt.started) AS integer) > CAST(strftime('%s', datetime('now','localtime')) AS integer)) ORDER BY p.place, pt.place LIMIT 15");
+        "SELECT pt.id, pt.title, pt.place, pt.description, pt.completed, pt.started, pt.completed, pt.priority, pt.points, pt.userId, pt.milestoneId, pt.projectId FROM ProjectTask pt INNER JOIN Project p on p.id = pt.projectId WHERE (pt.completed == 'null' AND pt.started == 'null') OR (pt.completed == 'null' AND CAST(strftime('%s', pt.started) AS integer) > CAST(strftime('%s', datetime('now','localtime')) AS integer)) ORDER BY p.place, pt.place LIMIT 15");
     if (projectResult.isEmpty) {
       return [];
     }
@@ -707,9 +709,10 @@ class LocalDatabase {
     return tasks;
   }
 
-  Future<List<ProjectTask>> getQueriedExistingTasksForToday(String search) async {
+  Future<List<ProjectTask>> getQueriedExistingTasksForToday(
+      String search) async {
     List<ProjectTask> tasks = [];
- 
+
     var projectResult = await db.rawQuery(
         "SELECT pt.id, pt.title, pt.place, pt.description, pt.completed, pt.started, pt.completed, pt.priority, pt.points, pt.userId, pt.milestoneId, pt.projectId FROM ProjectTask pt INNER JOIN Project p on p.id = pt.projectId WHERE pt.completed == 'null' AND pt.started == 'null' AND (pt.title LIKE '%$search%' OR pt.description LIKE '%$search%' OR p.title LIKE '%$search%') ORDER BY p.place, pt.place LIMIT 15");
     for (Map<String, dynamic> item in projectResult) {
@@ -745,7 +748,7 @@ class LocalDatabase {
   Future<List<ProjectTask>> getProjectTasksForToday() async {
     var db = await _getDb();
     var result = await db.rawQuery(
-      "SELECT pt.id, pt.title, pt.place, pt.description, pt.completed, pt.started, pt.completed, pt.priority, pt.points, pt.userId, pt.milestoneId, pt.projectId FROM ProjectTask pt INNER JOIN Project p on p.id = pt.projectId WHERE pt.completed == 'null' AND CAST(strftime('%s', pt.started) AS integer) <= CAST(strftime('%s', datetime('now','localtime')) AS integer) ORDER BY pt.place asc");
+        "SELECT pt.id, pt.title, pt.place, pt.description, pt.completed, pt.started, pt.completed, pt.priority, pt.points, pt.userId, pt.milestoneId, pt.projectId FROM ProjectTask pt INNER JOIN Project p on p.id = pt.projectId WHERE pt.completed == 'null' AND CAST(strftime('%s', pt.started) AS integer) <= CAST(strftime('%s', datetime('now','localtime')) AS integer) ORDER BY pt.place asc");
     if (result.isEmpty) {
       return [];
     }
@@ -753,6 +756,9 @@ class LocalDatabase {
     var counter = 0;
     for (Map<String, dynamic> item in result) {
       ProjectTask task = new ProjectTask.fromMap(item);
+      if (counter == 0) {
+        counter = task.place;
+      }
       task.place = counter;
       task.project = await getProject(task.projectId);
       tasks.add(task);

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
@@ -19,6 +21,8 @@ import 'package:peaky_blinders/Pages/LoginPage.dart';
 import 'package:peaky_blinders/Repositories/ErrorRepository.dart';
 import 'package:peaky_blinders/Repositories/UserRepository.dart';
 
+
+
 Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
     personalBloc, skillBloc, problemBloc) async {
   Widget _defaultHome = new LoginPage();
@@ -36,36 +40,45 @@ Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
   return _defaultHome;
 }
 
-Future initData(UserBloc userBloc, ProjectBloc projectBloc, TaskBloc taskBloc, RoutineSettingBloc routineTaskBloc, SkillBloc skillBloc,
+Future initData(
+    UserBloc userBloc,
+    ProjectBloc projectBloc,
+    TaskBloc taskBloc,
+    RoutineSettingBloc routineTaskBloc,
+    SkillBloc skillBloc,
     ProblemBloc problemBloc) async {
   //retrieve data from server
-  await userBloc.setUser();
+  userBloc.setUser();
   //projectBloc.syncEverything();
   //routineTaskBloc.syncRoutineSettings();
   //skillBloc.syncSkill();
-  //problemBloc.syncProblem();
-  await userBloc.getCompletedTasksToday();
-  await userBloc.getPointsGainedToday();
-  await userBloc.getChartData();
-  await userBloc.getCompletedTasks();
-  await userBloc.getCompletedPoints();
+  // //problemBloc.syncProblem();
+  // await userBloc.getCompletedTasksToday();
+  // await userBloc.getPointsGainedToday();
+  // await userBloc.getChartData();
+  // await userBloc.getCompletedTasks();
+  // await userBloc.getCompletedPoints();
 
   //set data for pages
 
-  await routineTaskBloc.setRoutineSettings();
-  await taskBloc.setTasksForToday();
-  await projectBloc.setProjects();
-  await projectBloc.setProjectCount();
-  await taskBloc.setNextTask();
-  await taskBloc.createTasksTomorrow();
+  routineTaskBloc.setRoutineSettings();
+  taskBloc.setTasksForToday();
+  projectBloc.setProjects();
+  projectBloc.setProjectCount();
+  taskBloc.setNextTask();
+  taskBloc.createTasksTomorrow();
   await skillBloc.setSkills();
-  await problemBloc.setProblems();
-  await skillBloc.getSkillsForGraph(userBloc.getUser().amountOfSkills);
-  await skillBloc.syncSkills();
+  problemBloc.setProblems();
+  skillBloc.getSkillsForGraph(userBloc.getUser().amountOfSkills);
+  //skillBloc.syncSkills();
 }
 
 void main() async {
-
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        systemNavigationBarColor:
+            Colors.black, // navigation bar color
+        statusBarColor: Colors.black, // status bar color
+      ));
   runZoned<Future<Null>>(() async {
     //load data, then app
     ProjectBloc projectBloc = new ProjectBloc();
@@ -75,7 +88,7 @@ void main() async {
     RoutineSettingBloc routineTaskBloc = new RoutineSettingBloc();
     SkillBloc skillBloc = new SkillBloc();
     ProblemBloc problemBloc = new ProblemBloc();
-    await ErrorRepository.get().sendErrorMessage("testing", "");
+
     runApp(new PeakyApp(
         await selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
             personalBloc, skillBloc, problemBloc),
@@ -87,8 +100,9 @@ void main() async {
         skillBloc,
         problemBloc));
   }, onError: (error, stackTrace) async {
-    if(error){
-        await ErrorRepository.get().sendErrorMessage(error.toString(), "");
+    if (error) {
+      await ErrorRepository.get()
+          .sendErrorMessage(error.toString(), stackTrace);
     }
   });
 }
@@ -140,10 +154,6 @@ class PeakyApp extends StatelessWidget {
                         bloc: _problemBloc,
                         child: MaterialApp(
                           title: 'Peaky Blinder',
-                          theme: ThemeData(
-                            primarySwatch: Colors.blue,
-                            hintColor: Colors.white,
-                          ),
                           home: _page,
                         ),
                       ),

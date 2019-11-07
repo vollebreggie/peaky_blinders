@@ -22,7 +22,7 @@ class ErrorLog {
     return {
       "id": id,
       "userId": userId,
-      "statusCode": statusCode,
+      "statusCode": statusCode != null ? statusCode : 500,
       "stackTrace": stackTrace,
       "message": message,
       "innerException": innerException,

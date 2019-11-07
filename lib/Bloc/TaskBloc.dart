@@ -40,6 +40,7 @@ class TaskBloc implements BlocBase {
   // Constructor
   //
   TaskBloc() {
+    searchText ="";
     _tasksToday = [];
     _tasksTomorrow = [];
   }

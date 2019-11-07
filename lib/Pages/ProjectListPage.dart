@@ -200,8 +200,8 @@ class _ProjectListState extends State<ProjectListPage> {
               height: 40.0,
               child: RaisedButton(
                 color: Colors.red,
-                onPressed: () async {
-                  await _showDeleteDialog(context, project);
+                onPressed: () {
+                   _showDeleteDialog(context, project);
                 },
                 splashColor: Colors.grey,
                 textColor: Colors.white,
@@ -250,10 +250,11 @@ class _ProjectListState extends State<ProjectListPage> {
                     _loadingInProgress = true;
                   });
                   await projectBloc.deleteProjectAsync(project);
-
+                  await projectBloc.setProjects();
                   setState(() {
                     _loadingInProgress = false;
                   });
+                  Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
                 splashColor: Colors.grey,
@@ -291,6 +292,7 @@ class _ProjectListState extends State<ProjectListPage> {
         completedPoints: 0,
         priority: "Trivial",
         milestones: [],
+        place: 0,
         started: DateTime.now()));
     bloc.createMileStone();
     Navigator.push(

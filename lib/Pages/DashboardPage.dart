@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
+import 'package:peaky_blinders/Pages/CurrentTaskPage.dart';
 import 'package:peaky_blinders/Pages/PersonalPage.dart';
 import 'package:peaky_blinders/Pages/ProjectListPage.dart';
 import 'package:peaky_blinders/Pages/RoutineListPage.dart';
@@ -25,7 +27,8 @@ class MyHomePageState extends State<MyHomePage> {
 
   final List<Widget> _pages = <Widget>[
     new ConstrainedBox(
-        constraints: const BoxConstraints.expand(), child: new SynopsPage()),
+        constraints: const BoxConstraints.expand(),
+        child: new CurrentTaskPage()),
     new ConstrainedBox(
         constraints: const BoxConstraints.expand(), child: new TaskListPage()),
     new ConstrainedBox(
@@ -71,31 +74,39 @@ class MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future setData(context) async {
-    final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
-    final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
-    final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
-    final RoutineSettingBloc routineTaskBloc =
-        BlocProvider.of<RoutineSettingBloc>(context);
-    await userBloc.setUser();
-    projectBloc.syncEverything();
-    routineTaskBloc.syncRoutineSettings();
-    await userBloc.getCompletedTasksToday();
-    await userBloc.getPointsGainedToday();
-    await userBloc.getChartData();
-    await userBloc.getCompletedTasks();
-    await userBloc.getCompletedPoints();
+  // Future setData(context) async {
+  //   final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
+  //   final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+  //   final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+  //   final RoutineSettingBloc routineTaskBloc =
+  //       BlocProvider.of<RoutineSettingBloc>(context);
+  //   userBloc.setUser();
+  //   //await projectBloc.syncEverything();
+  //   //await routineTaskBloc.syncRoutineSettings();
+  //   userBloc.getCompletedTasksToday();
+  //   userBloc.getPointsGainedToday();
+  //   userBloc.getChartData();
+  //   userBloc.getCompletedTasks();
+  //   userBloc.getCompletedPoints();
 
-    //set data for pages
-    await routineTaskBloc.setRoutineSettings();
-    await taskBloc.setTasksForToday();
-    await projectBloc.setProjects();
-    await projectBloc.setProjectCount();
-    await taskBloc.setNextTask();
-  }
+  //   // //set data for pages
+  //   routineTaskBloc.setRoutineSettings();
+  //   taskBloc.setTasksForToday();
+  //   projectBloc.setProjects();
+  //   projectBloc.setProjectCount();
+  //   taskBloc.setNextTask();
+  // }
 
   @override
   Widget build(BuildContext context) {
+    setState(() {
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        systemNavigationBarColor:
+            Color.fromRGBO(44, 44, 44, 1), // navigation bar color
+        statusBarColor: Colors.transparent,//Color.fromRGBO(44, 44, 44, 1), // status bar color
+      ));
+    });
+
     pageBloc = BlocProvider.of<PageBloc>(context);
     return new Scaffold(
       // backgroundColor: Colors.red,//.fromRGBO(51, 3, 0, 0.9),

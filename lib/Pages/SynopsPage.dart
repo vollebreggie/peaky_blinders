@@ -36,7 +36,7 @@ class _SynopsPageState extends State<SynopsPage> {
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
     final PageBloc pageBloc = BlocProvider.of<PageBloc>(context);
     Task nextTask = taskBloc.getNextTask();
-
+    
     Future navigateToPage(int index) async {
       pageBloc.page = index;
       await pageBloc.controller.animateToPage(index,
@@ -93,6 +93,7 @@ class _SynopsPageState extends State<SynopsPage> {
                 await changeNextTask();
               },
             ),
+            createStatistics(context),
             Row(
               children: <Widget>[
                 InkWell(
@@ -117,18 +118,18 @@ class _SynopsPageState extends State<SynopsPage> {
                 ),
               ],
             ),
-            Row(
-              children: <Widget>[
-                InkWell(
-                  child: createTask(context, "Completed Tasks",
-                      userBloc.completedTaskToday.toString(), Icons.check),
-                ),
-                InkWell(
-                  child: createTask(context, "Points Gained",
-                      userBloc.completedPointsToday.toString(), Icons.check),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: <Widget>[
+            //     InkWell(
+            //       child: createTask(context, "Completed Tasks",
+            //           userBloc.completedTaskToday.toString(), Icons.check),
+            //     ),
+            //     InkWell(
+            //       child: createTask(context, "Points Gained",
+            //           userBloc.completedPointsToday.toString(), Icons.check),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),

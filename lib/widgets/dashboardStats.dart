@@ -13,7 +13,7 @@ Widget createStatistics(context) {
       top: 25,
       right: 5,
     ),
-    height: MediaQuery.of(context).size.height * 0.4,
+    height: MediaQuery.of(context).size.height * 0.3,
     width: MediaQuery.of(context).size.width,
     decoration: new BoxDecoration(
       boxShadow: [

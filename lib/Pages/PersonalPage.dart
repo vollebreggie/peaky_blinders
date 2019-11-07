@@ -158,7 +158,6 @@ class _PersonalPageState extends State<PersonalPage> {
                     ),
                   ],
                 ),
-                createStatistics(context),
                 Row(
                   children: <Widget>[
                     InkWell(
