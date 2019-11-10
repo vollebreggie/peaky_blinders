@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
@@ -158,6 +159,7 @@ class _PersonalPageState extends State<PersonalPage> {
                     ),
                   ],
                 ),
+                createStatistics(context),
                 Row(
                   children: <Widget>[
                     InkWell(

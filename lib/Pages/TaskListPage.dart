@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
@@ -23,6 +24,7 @@ class _TaskListState extends State<TaskListPage> {
   Widget build(BuildContext context) {
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
     final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
       body: new DragAndDropList<Task>(
@@ -33,15 +35,15 @@ class _TaskListState extends State<TaskListPage> {
               child: createTodayTask(context, item),
               onTap: () async {
                 if (item.runtimeType == ProjectTask) {
-                taskBloc.setProjectTask(item);
-                taskBloc.getTasksToday().removeWhere((t) => t == item);
-                navigateToTaskPage(context);
+                  taskBloc.setProjectTask(item);
+                  taskBloc.getTasksToday().removeWhere((t) => t == item);
+                  navigateToTaskPage(context);
                 }
               },
               onDoubleTap: () async {
                 if (item.runtimeType == ProjectTask) {
                   _showOptionsDialog(context, item);
-                } else if(item.runtimeType == RoutineTask){
+                } else if (item.runtimeType == RoutineTask) {
                   _showDeleteDialog(context, item);
                 }
               },

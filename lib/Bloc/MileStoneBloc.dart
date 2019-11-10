@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
 import 'package:peaky_blinders/Repositories/MileStoneRepository.dart';
 
 class MileStoneBloc implements BlocBase {
@@ -14,9 +15,12 @@ class MileStoneBloc implements BlocBase {
   StreamSink<List<MileStone>> get _inMileStone => _milestoneController.sink;
   Stream<List<MileStone>> get outMileStone => _milestoneController.stream;
 
-  StreamController _actionController = StreamController();
-  StreamSink get fetchProject => _actionController.sink;
-
+  StreamController<List<MileStoneDropdown>> _milestoneDropdownController =
+      StreamController<List<MileStoneDropdown>>.broadcast();
+  StreamSink<List<MileStoneDropdown>> get _inMileStoneDropdown =>
+      _milestoneDropdownController.sink;
+  Stream<List<MileStoneDropdown>> get outMileStoneDropdown =>
+      _milestoneDropdownController.stream;
   //
   // Constructor
   //
@@ -28,7 +32,7 @@ class MileStoneBloc implements BlocBase {
 
   @override
   void dispose() {
-    _actionController.close();
+    _milestoneDropdownController.close();
     _milestoneController.close();
   }
 
@@ -49,6 +53,16 @@ class MileStoneBloc implements BlocBase {
 
   MileStone getCurrentMileStone() {
     return _currentMilestone;
+  }
+
+  Future getDropdownMileStone(int projectId) async {
+    _inMileStoneDropdown
+        .add(await MileStoneRepository.get().getMileStoneDropdown(projectId));
+  }
+
+  Future getMilestones(projectId) async {
+    _inMileStone.add(
+        await MileStoneRepository.get().getMilestonesByProjectId(projectId));
   }
 
   Future getMilestonesByProjectId(projectId) async {

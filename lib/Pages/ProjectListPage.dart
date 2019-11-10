@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
@@ -42,38 +43,35 @@ class _ProjectListState extends State<ProjectListPage> {
           return new SizedBox(
             child: InkWell(
               child: createNextProject(context, item),
-                  onTap: () async {
-                    final ProjectBloc bloc =
-                        BlocProvider.of<ProjectBloc>(context);
-                    final MileStoneBloc milestoneBloc =
-                        BlocProvider.of<MileStoneBloc>(context);
-                    final TaskBloc blocTask =
-                        BlocProvider.of<TaskBloc>(context);
-                    bloc.setCurrentProject(item);
-                    blocTask.setProjectId(item.id);
+              onTap: () async {
+                final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
+                final MileStoneBloc milestoneBloc =
+                    BlocProvider.of<MileStoneBloc>(context);
+                final TaskBloc blocTask = BlocProvider.of<TaskBloc>(context);
+                bloc.setCurrentProject(item);
+                blocTask.setProjectId(item.id);
 
-                    await milestoneBloc
-                        .getMilestonesByProjectId(item.id);
-                    await navigateToProject(context, item);
-                  },
-                  // onLongPress: () async {
-                  //   final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
-                  //   tvBloc.setOwner();
-                  //   tvBloc.existingProject = true;
-                  //   tvBloc.projectImage = item.imagePathServer;
-                  //   tvBloc.projectName = item.title;
-                  //   tvBloc.project = item;
-                  //   tvBloc.users = item.users;
+                await milestoneBloc.getMilestonesByProjectId(item.id);
+                await navigateToProject(context, item);
+              },
+              // onLongPress: () async {
+              //   final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
+              //   tvBloc.setOwner();
+              //   tvBloc.existingProject = true;
+              //   tvBloc.projectImage = item.imagePathServer;
+              //   tvBloc.projectName = item.title;
+              //   tvBloc.project = item;
+              //   tvBloc.users = item.users;
 
-                  //   tvBloc.milestones = await tvBloc
-                  //       .getMilestonesForProject(item.id);
-                  //   tvBloc.milestoneCounter = tvBloc.milestones.length;
-                  //   Navigator.push(context,
-                  //       MaterialPageRoute(builder: (context) => TVListPage()));
-                  // },
-                  onDoubleTap: () {
-                    _showOptionsDialog(context, item);
-                  },
+              //   tvBloc.milestones = await tvBloc
+              //       .getMilestonesForProject(item.id);
+              //   tvBloc.milestoneCounter = tvBloc.milestones.length;
+              //   Navigator.push(context,
+              //       MaterialPageRoute(builder: (context) => TVListPage()));
+              // },
+              onDoubleTap: () {
+                _showOptionsDialog(context, item);
+              },
             ),
           );
         },
@@ -170,19 +168,19 @@ class _ProjectListState extends State<ProjectListPage> {
               child: RaisedButton(
                 color: Color.fromRGBO(47, 87, 53, 0.8),
                 onPressed: () async {
-                    final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
-                    tvBloc.setOwner();
-                    tvBloc.existingProject = true;
-                    tvBloc.projectImage = project.imagePathServer;
-                    tvBloc.projectName = project.title;
-                    tvBloc.project = project;
-                    tvBloc.users = project.users;
+                  final TVBloc tvBloc = BlocProvider.of<TVBloc>(context);
+                  tvBloc.setOwner();
+                  tvBloc.existingProject = true;
+                  tvBloc.projectImage = project.imagePathServer;
+                  tvBloc.projectName = project.title;
+                  tvBloc.project = project;
+                  tvBloc.users = project.users;
 
-                    tvBloc.milestones = await tvBloc
-                        .getMilestonesForProject(project.id);
-                    tvBloc.milestoneCounter = tvBloc.milestones.length;
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => TVListPage()));
+                  tvBloc.milestones =
+                      await tvBloc.getMilestonesForProject(project.id);
+                  tvBloc.milestoneCounter = tvBloc.milestones.length;
+                  await Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => TVListPage()));
                 },
                 splashColor: Colors.grey,
                 textColor: Colors.white,
@@ -201,7 +199,7 @@ class _ProjectListState extends State<ProjectListPage> {
               child: RaisedButton(
                 color: Colors.red,
                 onPressed: () {
-                   _showDeleteDialog(context, project);
+                  _showDeleteDialog(context, project);
                 },
                 splashColor: Colors.grey,
                 textColor: Colors.white,
@@ -239,7 +237,6 @@ class _ProjectListState extends State<ProjectListPage> {
           ),
           actions: <Widget>[
             _loadingInProgress ? CircularProgressIndicator() : new Container(),
-
             ButtonTheme(
               minWidth: 100.0,
               height: 40.0,
@@ -283,7 +280,7 @@ class _ProjectListState extends State<ProjectListPage> {
   void navigateToCreateProject(context) {
     final ProjectBloc bloc = BlocProvider.of<ProjectBloc>(context);
     bloc.selectedProblems = [];
-    
+
     bloc.setCurrentProject(new Project(
         title: "title",
         description: "some description",

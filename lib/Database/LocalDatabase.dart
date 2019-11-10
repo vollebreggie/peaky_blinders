@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:peaky_blinders/Models/Master.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
 import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Models/ProjectDropdown.dart';
@@ -145,7 +146,7 @@ class LocalDatabase {
     return new Token.fromMap(result[0]);
   }
 
-  /// Get a token
+
   Future<List<ProjectDropdown>> getProjectDropdown() async {
     var db = await _getDb();
     var result = await db.rawQuery('SELECT * FROM Project');
@@ -156,6 +157,19 @@ class LocalDatabase {
       projects.add(new ProjectDropdown.fromMap(item));
     }
     return projects;
+  }
+
+    Future<List<MileStoneDropdown>> getMileStoneDropdown(int projectId) async {
+    var db = await _getDb();
+    var result = await db.rawQuery(
+        "Select * FROM Milestone WHERE projectId = $projectId ORDER BY place");
+    if (result.length == 0) return null;
+    List<MileStoneDropdown> milestones = [];
+
+    for (Map<String, dynamic> item in result) {
+      milestones.add(new MileStoneDropdown.fromMap(item));
+    }
+    return milestones;
   }
 
   /// Inserts or replaces the user.

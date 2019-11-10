@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
@@ -19,8 +20,12 @@ class _RoutineListState extends State<RoutineListPage> {
   Widget build(BuildContext context) {
     RoutineSettingBloc settingTaskBloc =
         BlocProvider.of<RoutineSettingBloc>(context);
-   SkillBloc skillBloc =
-        BlocProvider.of<SkillBloc>(context);
+    SkillBloc skillBloc = BlocProvider.of<SkillBloc>(context);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: Color.fromRGBO(
+          44, 44, 44, 1), //.fromRGBO(30, 30, 30, 1), // navigation bar color
+      statusBarColor: Colors.transparent, // status bar color
+    ));
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),
@@ -32,7 +37,8 @@ class _RoutineListState extends State<RoutineListPage> {
               child: InkWell(
                 child: createRoutineTask(context, item),
                 onTap: () async {
-                  item.skills = await skillBloc.getAllSkillsForRoutineTaskSettingById(item.id);
+                  item.skills = await skillBloc
+                      .getAllSkillsForRoutineTaskSettingById(item.id);
                   settingTaskBloc.setRoutineTask(item);
                   settingTaskBloc
                       .getRoutineTaskSettings()

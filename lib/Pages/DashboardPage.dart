@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' as prefix0;
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/PageBLoc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
@@ -99,204 +100,213 @@ class MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    pageBloc = BlocProvider.of<PageBloc>(context);
+
+    SystemUiOverlayStyle _currentStyle = SystemUiOverlayStyle.light;
+
     setState(() {
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        systemNavigationBarColor:
-            Color.fromRGBO(44, 44, 44, 1), // navigation bar color
-        statusBarColor: Colors.transparent,//Color.fromRGBO(44, 44, 44, 1), // status bar color
-      ));
+      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: pageBloc.page == 0
+            ? Color.fromRGBO(33, 33, 33, 1)
+            : Color.fromRGBO(44, 44, 44, 1),
+      );
     });
 
-    pageBloc = BlocProvider.of<PageBloc>(context);
-    return new Scaffold(
-      // backgroundColor: Colors.red,//.fromRGBO(51, 3, 0, 0.9),
-      body: new IconTheme(
-        data: new IconThemeData(color: _kArrowColor),
-        child: new Stack(
-          children: <Widget>[
-            new PageView.builder(
-              physics: new AlwaysScrollableScrollPhysics(),
-              controller: pageBloc.controller,
-              onPageChanged: (index) {
-                pageChanged(index);
-              },
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                    child: _pages[index % _pages.length],
-                    onHorizontalDragEnd: (dragEndDetails) {
-                      setPage(dragEndDetails).then((value) {
-                        print(pageBloc.page);
+    return AnnotatedRegion(
+      value: _currentStyle,
+      child: new Scaffold(
+        // backgroundColor: Colors.red,//.fromRGBO(51, 3, 0, 0.9),
+        body: new IconTheme(
+          data: new IconThemeData(color: _kArrowColor),
+          child: new Stack(
+            children: <Widget>[
+              new PageView.builder(
+                physics: new AlwaysScrollableScrollPhysics(),
+                controller: pageBloc.controller,
+                onPageChanged: (index) {
+                  pageChanged(index);
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                      child: _pages[index % _pages.length],
+                      onHorizontalDragEnd: (dragEndDetails) {
+                        setPage(dragEndDetails).then((value) {
+                          print(pageBloc.page);
+                        });
                       });
-                    });
-              },
-            ),
-          ],
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: new Theme(
-        data: Theme.of(context).copyWith(
-            // sets the background color of the `BottomNavigationBar`s
-            canvasColor: Color.fromRGBO(8, 68, 22, 0.98),
-            // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-            primaryColor: Colors.white,
-            textTheme: Theme.of(context).textTheme.copyWith(
-                caption: new TextStyle(
-                    color: Colors
-                        .white))), // sets the inactive color of the `BottomNavigationBar`
-        child: new BottomNavigationBar(
-          onTap: (index) {
-            navigateToPage(index).catchError((value) {});
-          },
-          currentIndex: pageBloc.page,
-          //fixedColor: Colors.transparent,
-          type: BottomNavigationBarType.shifting,
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.dashboard),
+        bottomNavigationBar: new Theme(
+          data: Theme.of(context).copyWith(
+              // sets the background color of the `BottomNavigationBar`s
+              canvasColor: Color.fromRGBO(8, 68, 22, 0.98),
+              // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+              primaryColor: Colors.white,
+              textTheme: Theme.of(context).textTheme.copyWith(
+                  caption: new TextStyle(
+                      color: Colors
+                          .white))), // sets the inactive color of the `BottomNavigationBar`
+          child: new BottomNavigationBar(
+            onTap: (index) {
+              navigateToPage(index).catchError((value) {});
+            },
+            currentIndex: pageBloc.page,
+            //fixedColor: Colors.transparent,
+            type: BottomNavigationBarType.shifting,
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.dashboard),
+                ),
+                title: Text(
+                  'Current Task',
+                  style: new TextStyle(color: Colors.white),
+                ),
+                activeIcon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.dashboard),
+                ),
               ),
-              title: Text(
-                'Dashboard',
-                style: new TextStyle(color: Colors.white),
+              BottomNavigationBarItem(
+                icon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white, Colors.white30],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.view_headline),
+                ),
+                title: Text(
+                  'Tasks Today',
+                  style: new TextStyle(color: Colors.white),
+                ),
+                activeIcon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white, Colors.white30],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.view_headline),
+                ),
               ),
-              activeIcon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.dashboard),
+              BottomNavigationBarItem(
+                icon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white, Colors.white70],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.view_agenda),
+                ),
+                title: Text(
+                  'Projects',
+                  style: new TextStyle(color: Colors.white),
+                ),
+                activeIcon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white, Colors.white70],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.view_agenda),
+                ),
               ),
-            ),
-            BottomNavigationBarItem(
-              icon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topLeft,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white, Colors.white30],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.view_headline),
+              BottomNavigationBarItem(
+                icon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.repeat),
+                ),
+                title: Text(
+                  'Routine',
+                  style: new TextStyle(color: Colors.white),
+                ),
+                activeIcon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.repeat),
+                ),
               ),
-              title: Text(
-                'Tasks Today',
-                style: new TextStyle(color: Colors.white),
+              BottomNavigationBarItem(
+                icon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.account_circle),
+                ),
+                title: Text(
+                  'Personal',
+                  style: new TextStyle(color: Colors.white),
+                ),
+                activeIcon: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return RadialGradient(
+                      center: Alignment.topCenter,
+                      radius: 1.0,
+                      colors: <Color>[Colors.white70, Colors.white],
+                      tileMode: TileMode.mirror,
+                    ).createShader(bounds);
+                  },
+                  child: Icon(Icons.account_circle),
+                ),
               ),
-              activeIcon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topLeft,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white, Colors.white30],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.view_headline),
-              ),
-            ),
-            BottomNavigationBarItem(
-              icon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topLeft,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white, Colors.white70],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.view_agenda),
-              ),
-              title: Text(
-                'Projects',
-                style: new TextStyle(color: Colors.white),
-              ),
-              activeIcon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topLeft,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white, Colors.white70],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.view_agenda),
-              ),
-            ),
-            BottomNavigationBarItem(
-              icon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.repeat),
-              ),
-              title: Text(
-                'Routine',
-                style: new TextStyle(color: Colors.white),
-              ),
-              activeIcon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.repeat),
-              ),
-            ),
-            BottomNavigationBarItem(
-              icon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.account_circle),
-              ),
-              title: Text(
-                'Personal',
-                style: new TextStyle(color: Colors.white),
-              ),
-              activeIcon: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return RadialGradient(
-                    center: Alignment.topCenter,
-                    radius: 1.0,
-                    colors: <Color>[Colors.white70, Colors.white],
-                    tileMode: TileMode.mirror,
-                  ).createShader(bounds);
-                },
-                child: Icon(Icons.account_circle),
-              ),
-            ),
-          ],
-          // new BottomNavigationBarItem(
-          //   activeIcon: new Icon(Icons.access_alarm),
-          //   icon: new Icon(Icons.access_alarm),
-          //   title: new Text("hello"),
-          // ),
+            ],
+            // new BottomNavigationBarItem(
+            //   activeIcon: new Icon(Icons.access_alarm),
+            //   icon: new Icon(Icons.access_alarm),
+            //   title: new Text("hello"),
+            // ),
+          ),
         ),
       ),
     );

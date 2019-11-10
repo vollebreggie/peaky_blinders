@@ -190,7 +190,7 @@ class TaskRepository extends BaseRepository {
     return await database.getNextTasksForToday();
   }
 
-  Future updateProjectTask(ProjectTask projectTask) async {
+  Future<ProjectTask> updateProjectTask(ProjectTask projectTask) async {
     http.Response response = await http.put(
         super.weburl + "api/ProjectTasks/${projectTask.id}",
         body: jsonEncode(projectTask.toMap()),
@@ -205,6 +205,8 @@ class TaskRepository extends BaseRepository {
     if (parsedResponse.isOk()) {
       await database.updateProjectTask(parsedResponse.body);
     }
+
+    return parsedResponse.body;
   }
 
   Future changePriorityProjectTasks(List<ProjectTask> tasks) async {

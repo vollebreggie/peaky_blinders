@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:peaky_blinders/Database/LocalDatabase.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
+import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
 import 'package:peaky_blinders/Models/Project.dart';
 import 'package:peaky_blinders/Repositories/BaseRepository.dart';
 import 'package:http/http.dart' as http;
@@ -67,6 +68,11 @@ class MileStoneRepository extends BaseRepository {
     //TODO::
 
     /// await postUserToProject(user.id, mapProject["id"]);
+  }
+
+
+  Future<List<MileStoneDropdown>> getMileStoneDropdown(int projectId) async {
+    return await database.getMileStoneDropdown(projectId);
   }
 
   /// Deletes milestones by project id from the server and local database
