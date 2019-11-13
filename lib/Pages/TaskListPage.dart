@@ -259,6 +259,7 @@ class _TaskListState extends State<TaskListPage> {
                     //taskBloc.getTasksToday();
                   });
                   Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 },
                 splashColor: Colors.grey,
                 textColor: Colors.white,

@@ -122,7 +122,7 @@ Widget createMileStone(context, MileStone milestone) {
           child: Container(
             padding: EdgeInsets.only(left: 90.0),
             child: Center(
-                child: new Text(milestone.title,
+                child: new Text(milestone.title.length > 23 ? milestone.title.substring(0, 21) + ".." : milestone.title,
                     textAlign: TextAlign.start,
                     style: TextStyle(color: Colors.white, fontSize: 20))),
             height: 120,

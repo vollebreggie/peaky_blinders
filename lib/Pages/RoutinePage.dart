@@ -1,613 +1,435 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
+import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
+import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
+import 'package:peaky_blinders/Bloc/TaskBloc.dart';
+import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
+import 'package:peaky_blinders/Models/ProjectDropdown.dart';
+import 'package:peaky_blinders/Models/ProjectTask.dart';
+import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
-import 'package:peaky_blinders/Models/Skill.dart';
-import 'package:peaky_blinders/widgets/TrapeziumClipper.dart';
-import 'package:peaky_blinders/widgets/selectedRoutineSettingSkillWidget.dart';
-import 'package:peaky_blinders/widgets/selectedSkillWidget.dart';
+import 'package:peaky_blinders/Models/Task.dart';
+import 'package:peaky_blinders/Repositories/TaskRepository.dart';
+import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
+import 'package:peaky_blinders/widgets/DrawHorizontalLine.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 class RoutinePage extends StatefulWidget {
   @override
-  _RoutineState createState() => _RoutineState();
+  _RoutinePageState createState() => _RoutinePageState();
 }
 
-class _RoutineState extends State<RoutinePage> {
-  final titleController = TextEditingController();
-  final descriptionController = TextEditingController();
-  RoutineSettingBloc routineBloc;
-  RoutineTaskSetting tempRoutineTask;
+class _RoutinePageState extends State<RoutinePage> {
   List<String> _points = ['1', '2', '4', '8', '12', '18', '32', '45'];
   String _selectedPoints;
-  Color pointsColors = Colors.white70;
+  ProjectDropdown _selectedProject;
+  MileStoneDropdown _selectedMileStone;
+  String _image;
+  RoutineSettingBloc _routineBloc;
+  RoutineTaskSetting _routine;
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _scrollController = ScrollController();
+  TaskBloc _taskBloc;
   bool exit = true;
+  ProjectBloc _projectBloc;
 
   _settitleValue() {
-    tempRoutineTask.title = titleController.text;
+    _routine.title = _titleController.text;
   }
 
   _setDescriptionValue() {
-    tempRoutineTask.description = descriptionController.text;
+    _routine.description = _descriptionController.text;
   }
 
   @override
   void initState() {
     super.initState();
-    titleController.addListener(_settitleValue);
-    descriptionController.addListener(_setDescriptionValue);
+
+    _titleController.addListener(_settitleValue);
+    _descriptionController.addListener(_setDescriptionValue);
+
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        if (visible) {
+          _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 600),
+              curve: Curves.ease);
+        } else {
+          _scrollController.animateTo(
+              _scrollController.position.minScrollExtent,
+              duration: Duration(milliseconds: 600),
+              curve: Curves.ease);
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _scrollController.dispose();
     super.dispose();
-  }
-
-  Color getPointsColor(int points) {
-    if (points < 9) {
-      return Colors.green;
-    }
-    if (points > 9 && points < 30) {
-      return Colors.orange;
-    }
-    if (points > 30) {
-      return Colors.red;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    routineBloc = BlocProvider.of<RoutineSettingBloc>(context);
-    tempRoutineTask = routineBloc.getRoutineTask();
-    titleController.text = tempRoutineTask.title;
-    descriptionController.text = tempRoutineTask.description;
-    pointsColors = getPointsColor(tempRoutineTask.points);
-    _selectedPoints = tempRoutineTask.points.toString();
+    _taskBloc = BlocProvider.of<TaskBloc>(context);
+    _projectBloc = BlocProvider.of<ProjectBloc>(context);
+    final MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
+    SystemUiOverlayStyle _currentStyle = SystemUiOverlayStyle.light;
+    _routineBloc = BlocProvider.of<RoutineSettingBloc>(context);
+    _routine = _routineBloc.getRoutineTask();
 
-    Color monday = tempRoutineTask.monday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color tuesday = tempRoutineTask.tuesday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color wednesday = tempRoutineTask.wednesday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color thursday = tempRoutineTask.thursday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color friday = tempRoutineTask.friday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color saturday = tempRoutineTask.saturday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
-    Color sunday = tempRoutineTask.sunday == 1
-        ? Color.fromRGBO(8, 68, 22, 1.0)
-        : Colors.white;
+    Color monday = _routine.monday == 1 ? Colors.white : Colors.white38;
+    Color tuesday = _routine.tuesday == 1 ? Colors.white : Colors.white38;
+    Color wednesday = _routine.wednesday == 1 ? Colors.white : Colors.white38;
+    Color thursday = _routine.thursday == 1 ? Colors.white : Colors.white38;
+    Color friday = _routine.friday == 1 ? Colors.white : Colors.white38;
+    Color saturday = _routine.saturday == 1 ? Colors.white : Colors.white38;
+    Color sunday = _routine.sunday == 1 ? Colors.white : Colors.white38;
 
-    return new WillPopScope(
+    if (_routine != null) {
+      _selectedPoints = _routine.points.toString();
+      _titleController.text = _routine.title;
+      _descriptionController.text = _routine.description;
+    }
+    setState(() {
+      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
+      );
+    });
+
+    return AnnotatedRegion(
+      value: _currentStyle,
+      child: new WillPopScope(
         child: Scaffold(
-          backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-          body: Stack(
-            children: <Widget>[
-              SingleChildScrollView(
-                child: new Column(
-                  children: [
-                    new Container(
-                      padding: EdgeInsets.only(top: 50),
-                      height: MediaQuery.of(context).size.height * 0.8,
-                      color: Colors.transparent,
-                      child: new Column(
-                        children: [
-                          Stack(
-                            children: <Widget>[
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: 5.0, top: 10, right: 5),
-                                height: 70,
-                                width: MediaQuery.of(context).size.width,
-                                color: Colors.transparent,
-                                child: Card(
-                                  elevation: 8,
-                                  color: Colors.transparent,
-                                  margin: EdgeInsets.zero,
-                                  child: Container(
-                                    padding: EdgeInsets.only(left: 85.0),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.monday ==
-                                                    0) {
-                                                  tempRoutineTask.monday = 1;
-                                                  monday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  monday = Colors.white;
-                                                  tempRoutineTask.monday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Mon',
-                                                style:
-                                                    TextStyle(color: monday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.tuesday ==
-                                                    0) {
-                                                  tempRoutineTask.tuesday = 1;
-                                                  tuesday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  tuesday = Colors.white;
-                                                  tempRoutineTask.tuesday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Tue',
-                                                style:
-                                                    TextStyle(color: tuesday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.wednesday ==
-                                                    0) {
-                                                  tempRoutineTask.wednesday = 1;
-                                                  wednesday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  wednesday = Colors.white;
-                                                  tempRoutineTask.wednesday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Wed',
-                                                style: TextStyle(
-                                                    color: wednesday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.thursday ==
-                                                    0) {
-                                                  tempRoutineTask.thursday = 1;
-                                                  thursday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  thursday = Colors.white;
-                                                  tempRoutineTask.thursday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Thu',
-                                                style:
-                                                    TextStyle(color: thursday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.friday ==
-                                                    0) {
-                                                  tempRoutineTask.friday = 1;
-                                                  friday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  friday = Colors.white;
-                                                  tempRoutineTask.friday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Fri',
-                                                style:
-                                                    TextStyle(color: friday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.saturday ==
-                                                    0) {
-                                                  tempRoutineTask.saturday = 1;
-                                                  saturday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  saturday = Colors.white;
-                                                  tempRoutineTask.saturday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Sat',
-                                                style:
-                                                    TextStyle(color: saturday)),
-                                          ),
-                                        ),
-                                        Center(
-                                          widthFactor: 0.48,
-                                          child: new FlatButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                if (tempRoutineTask.sunday ==
-                                                    0) {
-                                                  tempRoutineTask.sunday = 1;
-                                                  sunday = Color.fromRGBO(
-                                                      8, 68, 22, 1.0);
-                                                } else {
-                                                  sunday = Colors.white;
-                                                  tempRoutineTask.sunday = 0;
-                                                }
-                                              });
-                                            },
-                                            child: new Text('Sun',
-                                                style:
-                                                    TextStyle(color: sunday)),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    height: 70,
-                                    //color: Colors.transparent,
-                                    decoration: new BoxDecoration(
-                                      color: Colors.grey[900],
-                                      borderRadius: new BorderRadius.only(
-                                          topRight: const Radius.circular(10.0),
-                                          bottomRight:
-                                              const Radius.circular(10.0),
-                                          topLeft: const Radius.circular(20.0),
-                                          bottomLeft:
-                                              const Radius.circular(20.0)),
-                                      //color: Colors.transparent,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: 5.0, top: 10.0, right: 5),
-                                child: ClipPath(
-                                  clipper: TrapeziumClipper(),
-                                  child: Container(
-                                    decoration: new BoxDecoration(
-                                        color: Color.fromRGBO(8, 68, 22, 1.0),
-                                        borderRadius: new BorderRadius.only(
-                                            topLeft:
-                                                const Radius.circular(10.0),
-                                            bottomLeft:
-                                                const Radius.circular(10.0))),
-                                    //color: Color.fromRGBO(6, 32, 12, 1.0),
-                                    //padding: EdgeInsets.all(8.0),
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.2,
-                                    height: 60,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.only(right: 15),
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                                // maxHeight: 70,
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.3),
-                                            child: Center(
-                                              child: Container(
-                                                padding:
-                                                    EdgeInsets.only(top: 15),
-                                                child: Icon(Icons.repeat,
-                                                    color: Colors.white,
-                                                    size: 35),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          Stack(
-                            children: <Widget>[
-                              Container(
-                                margin: EdgeInsets.only(
-                                    left: 20.0, top: 10.0, right: 5),
-                                decoration: new BoxDecoration(
-                                  color: Colors.grey[900],
-                                  borderRadius: new BorderRadius.only(
-                                    topRight: const Radius.circular(10.0),
-                                    bottomRight: const Radius.circular(10.0),
-                                    topLeft: const Radius.circular(20.0),
-                                    bottomLeft: const Radius.circular(20.0),
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    ListTile(
-                                      leading: Icon(Icons.description,
-                                          color: Colors.green),
-                                      title: TextField(
-                                        cursorColor: Colors.white,
-                                        textAlign: TextAlign.left,
-                                        controller: titleController,
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontStyle: FontStyle.normal,
-                                            fontSize: 20),
-                                        decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: 5.0, top: 10.0, right: 5),
-                                child: ClipPath(
-                                  clipper: TrapeziumClipper(),
-                                  child: Container(
-                                    decoration: new BoxDecoration(
-                                        color: Color.fromRGBO(8, 68, 22, 1.0),
-                                        borderRadius: new BorderRadius.only(
-                                            topLeft:
-                                                const Radius.circular(10.0),
-                                            bottomLeft:
-                                                const Radius.circular(10.0))),
-                                    //color: Color.fromRGBO(6, 32, 12, 1.0),
-                                    //padding: EdgeInsets.all(8.0),
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.2,
-                                    height: 58,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.only(right: 15),
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                                // maxHeight: 70,
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.3),
-                                            child: Center(
-                                              child: Container(
-                                                padding:
-                                                    EdgeInsets.only(top: 10),
-                                                child: Icon(Icons.description,
-                                                    color: Colors.white,
-                                                    size: 35),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          Container(
-                            margin: EdgeInsets.only(bottom: 10),
-                            height: 65,
-                            child: StreamBuilder<List<Skill>>(
-                                stream: routineBloc.outSkill,
-                                initialData: [],
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<List<Skill>> snapshot) {
-                                  routineBloc.getSelectedSkill();
-                                  return createSelectedRoutineTaskSettingSkills(
-                                      context, snapshot.data);
-                                }),
-                          ),
-                          Stack(
-                            children: <Widget>[
-                              new Container(
-                                alignment: Alignment.topCenter,
-                                height: 60,
-                                width: MediaQuery.of(context).size.width,
-                                //color: Colors.grey[900],
-                                decoration: new BoxDecoration(
-                                  color: Colors.grey[900],
-                                  borderRadius: new BorderRadius.all(
-                                    const Radius.circular(10.0),
-                                  ),
-                                ),
-                                margin: new EdgeInsets.only(
-                                    top: 10.0, left: 5, right: 5, bottom: 5),
-                                child: new Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: <Widget>[
-                                      new Container(
-                                          alignment: Alignment.centerLeft,
-                                          margin: new EdgeInsets.only(
-                                              left: 20,
-                                              right: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.6),
-                                          child: Icon(Icons.show_chart,
-                                              color: pointsColors)),
-                                      new Theme(
-                                        data: Theme.of(context).copyWith(
-                                          canvasColor:
-                                              Color.fromRGBO(0, 0, 0, 0.8),
-                                        ),
-                                        child: new DropdownButton(
-                                          hint: Text('Points',
-                                              style: new TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 15.0)),
-                                          value: _selectedPoints,
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              tempRoutineTask.points =
-                                                  int.parse(newValue);
-                                              pointsColors = getPointsColor(
-                                                  int.parse(newValue));
-                                              _selectedPoints = newValue;
-                                            });
-                                          },
-                                          items: _points.map((location) {
-                                            return DropdownMenuItem(
-                                              child: new Text(location,
-                                                  style: new TextStyle(
-                                                      color: Colors.white70)),
-                                              value: location,
-                                            );
-                                          }).toList(),
-                                        ),
-                                      )
-                                    ]),
-                              ),
-                              Container(
-                                padding: EdgeInsets.only(
-                                    left: 5.0, top: 10.0, right: 5),
-                                child: ClipPath(
-                                  clipper: TrapeziumClipper(),
-                                  child: Container(
-                                    decoration: new BoxDecoration(
-                                        color: Color.fromRGBO(8, 68, 22, 1.0),
-                                        borderRadius: new BorderRadius.only(
-                                            topLeft:
-                                                const Radius.circular(10.0),
-                                            bottomLeft:
-                                                const Radius.circular(10.0))),
-                                    //color: Color.fromRGBO(6, 32, 12, 1.0),
-                                    //padding: EdgeInsets.all(8.0),
-                                    width:
-                                        MediaQuery.of(context).size.width * 0.2,
-                                    height: 60,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.only(right: 15),
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                                // maxHeight: 70,
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.3),
-                                            child: Center(
-                                              child: Container(
-                                                padding:
-                                                    EdgeInsets.only(top: 10),
-                                                child: Icon(Icons.show_chart,
-                                                    color: Colors.white,
-                                                    size: 35),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Card(
-                            elevation: 1,
-                            color: Colors.transparent,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Container(
-                                  padding: EdgeInsets.only(bottom: 0, top: 0),
-                                  height: 200,
-                                  width: MediaQuery.of(context).size.width,
-                                  //padding: EdgeInsets.all(10.0),
-                                  child: new ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxHeight: 200.0,
-                                    ),
-                                    child: new Scrollbar(
-                                      child: new SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        reverse: true,
-                                        child: SizedBox(
-                                          height: 200.0,
-                                          child: new TextField(
-                                            controller: descriptionController,
-                                            cursorColor: Colors.white,
-                                            textAlign: TextAlign.left,
-                                            maxLines: 100,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontStyle: FontStyle.normal,
-                                            ),
-                                            decoration: new InputDecoration(
-                                                border: InputBorder.none,
-                                                hintText: 'Description'),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
+          body: NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+              return <Widget>[
+                SliverAppBar(
+                  expandedHeight: 300.0,
+                  floating: false,
+                  pinned: false,
+                  flexibleSpace: Stack(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.transparent,
+                        child: ClipShadowPath(
+                          clipper: WaveClipperTwo(),
+                          shadow: Shadow(blurRadius: 20),
+                          child: Container(
+                            child: new CachedNetworkImage(
+                              fit: BoxFit.fill,
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              width: MediaQuery.of(context).size.width,
+                              imageUrl: _taskBloc.getImageFromProject(_image),
+                              placeholder: (context, url) =>
+                                  new CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  new Icon(Icons.error),
                             ),
+                            color: Colors.grey[900],
                           ),
-                        ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.transparent,
+                ),
+              ];
+            },
+            body: Stack(
+              children: <Widget>[
+                Align(
+                  alignment: Alignment(-0.8, -0.95),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.45,
+                    child: TextField(
+                      maxLines: 1,
+                      controller: _titleController,
+                      cursorColor: Colors.white,
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 15),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Enter your task here.",
+                        labelText: 'Task',
+                        focusColor: Colors.white,
+                        suffixStyle: TextStyle(color: Colors.white),
+                        hintStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              new Positioned(
-                //Place it at the top, and not use the entire screen
-                top: 0.0,
-                left: 0.0,
-                right: 0.0,
-                child: AppBar(
-                  backgroundColor: Colors.transparent, //No more green
-                  elevation: 0.0,
-                  //Shadow gone
+                Align(
+                  alignment: Alignment(-0.65, 0.3),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.62,
+                    child: TextField(
+                      controller: _descriptionController,
+                      maxLines: 10,
+                      cursorColor: Colors.white70,
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 13),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Enter your description here.",
+                        labelText: 'Description',
+                        focusColor: Colors.white,
+                        suffixStyle: TextStyle(color: Colors.white),
+                        helperStyle: TextStyle(color: Colors.white),
+                        hintStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.white38),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                Align(
+                  alignment: Alignment(-1.03, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.monday == 0) {
+                          _routine.monday = 1;
+                          monday = Colors.white;
+                        } else {
+                          monday = Colors.white38;
+                          _routine.monday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Mon', style: TextStyle(color: monday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(-0.73, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.tuesday == 0) {
+                          _routine.tuesday = 1;
+                          tuesday = Colors.white;
+                        } else {
+                          tuesday = Colors.white38;
+                          _routine.tuesday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Tue', style: TextStyle(color: tuesday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(-0.43, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.wednesday == 0) {
+                          _routine.wednesday = 1;
+                          wednesday = Colors.white;
+                        } else {
+                          wednesday = Colors.white38;
+                          _routine.wednesday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Wed', style: TextStyle(color: wednesday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(-0.13, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.thursday == 0) {
+                          _routine.thursday = 1;
+                          thursday = Colors.white;
+                        } else {
+                          thursday = Colors.white38;
+                          _routine.thursday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Thu', style: TextStyle(color: thursday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0.13, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.friday == 0) {
+                          _routine.friday = 1;
+                          friday = Colors.white;
+                        } else {
+                          friday = Colors.white38;
+                          _routine.friday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Fri', style: TextStyle(color: friday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0.43, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.saturday == 0) {
+                          _routine.saturday = 1;
+                          saturday = Colors.white;
+                        } else {
+                          saturday = Colors.white38;
+                          _routine.saturday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Sat', style: TextStyle(color: saturday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0.73, -0.6),
+                  child: new FlatButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_routine.sunday == 0) {
+                          _routine.sunday = 1;
+                          sunday = Colors.white;
+                        } else {
+                          sunday = Colors.white38;
+                          _routine.sunday = 0;
+                        }
+                      });
+                    },
+                    child: new Text('Sun', style: TextStyle(color: sunday)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0.8, -0.9),
+                  child: new Theme(
+                    data: Theme.of(context).copyWith(
+                      canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                    ),
+                    child: ButtonTheme(
+                      //layoutBehavior: ButtonBarLayoutBehavior.padded,
+                      alignedDropdown: true,
+                      buttonColor: Colors.transparent,
+                      child: new DropdownButton(
+                        iconDisabledColor: Colors.transparent,
+                        iconEnabledColor: Colors.transparent,
+                        style: TextStyle(),
+                        underline: Stack(
+                          children: <Widget>[
+                            Align(
+                              alignment: Alignment(-1.15, 2.0),
+                              child: Container(
+                                padding: const EdgeInsets.only(top: 0.0),
+                                child: Icon(
+                                  Icons.arrow_drop_up,
+                                  color: Colors.white30,
+                                  size: 30.0,
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment(0, -2),
+                              child: Container(
+                                padding: const EdgeInsets.only(top: 25.0),
+                                child: CustomPaint(
+                                  size: Size.square(2),
+                                  painter: new Drawhorizontalline(75),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        hint: SizedBox(
+                          width: 100.0, // for example
+                          child: Text(
+                            'Points',
+                            textAlign: TextAlign.center,
+                            style: new TextStyle(
+                                color: Colors.white54, fontSize: 15.0),
+                          ),
+                        ),
+                        value: _selectedPoints,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _routine.points = int.parse(newValue);
+                            _selectedPoints = newValue;
+                          });
+                        },
+                        items: _points.map((point) {
+                          return DropdownMenuItem(
+                              value: point,
+                              child: Builder(
+                                builder: (BuildContext context) {
+                                  final bool isDropDown =
+                                      context.ancestorStateOfType(TypeMatcher<
+                                              _RoutinePageState>()) ==
+                                          null;
+                                  if (isDropDown) {
+                                    return SizedBox(
+                                      width: 100.0, // for example
+                                      child: Text(
+                                        point,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
+                                    );
+                                  } else {
+                                    return SizedBox(
+                                      width: 100.0, // for example
+                                      child: Text(
+                                        point,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 20),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ));
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
-        onWillPop: navigateBack);
+        onWillPop: navigateBack,
+      ),
+    );
   }
 
   Future<bool> navigateBack() async {
     if (exit) {
       exit = false;
-      await routineBloc.updateRoutineTask(tempRoutineTask);
-      await routineBloc.setRoutineSettings();
+      await _routineBloc.updateRoutineTask(_routine);
+      await _routineBloc.setRoutineSettings();
       return true;
     }
     return false;

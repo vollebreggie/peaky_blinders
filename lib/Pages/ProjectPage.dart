@@ -60,7 +60,7 @@ class _Project extends State<ProjectPage> {
 
     return WillPopScope(
         child: Scaffold(
-          backgroundColor: Color.fromRGBO(60, 65, 74, 1),
+          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
           body: NestedScrollView(
             headerSliverBuilder:
                 (BuildContext context, bool innerBoxIsScrolled) {

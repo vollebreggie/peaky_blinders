@@ -3,6 +3,9 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
@@ -13,6 +16,7 @@ import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Pages/MilestonePage.dart';
 import 'package:peaky_blinders/Pages/TVUserListPage.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
+import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
 import 'package:peaky_blinders/widgets/MileStone.dart';
 import 'package:peaky_blinders/widgets/selectedProblemsCreateWidget.dart';
 
@@ -54,21 +58,30 @@ class _CreateProject extends State<CreateProjectPage> {
     projectBloc = BlocProvider.of<ProjectBloc>(context);
     titleController.text = projectBloc.getCurrentProject().title;
 
-    return WillPopScope(
-      child: Scaffold(
-        backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-        body: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-            return <Widget>[
-              SliverAppBar(
-                elevation: 0,
-                backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-                expandedHeight: 200.0,
-                floating: false,
-                pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  titlePadding: EdgeInsets.only(top: 5, right: 100),
+    SystemUiOverlayStyle _currentStyle = SystemUiOverlayStyle.light;
+
+    setState(() {
+      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
+      );
+    });
+
+    return AnnotatedRegion(
+      value: _currentStyle,
+      child: WillPopScope(
+        child: Scaffold(
+          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
+          body: NestedScrollView(
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+              return <Widget>[
+                SliverAppBar(
+                  expandedHeight: 300.0,
+                  floating: false,
+                  pinned: false,
                   title: Stack(
                     children: <Widget>[
                       TextField(
@@ -103,136 +116,162 @@ class _CreateProject extends State<CreateProjectPage> {
                       ),
                     ],
                   ),
-                  background: _imageFile == null
-                      ? new CachedNetworkImage(
-                          fit: BoxFit.fill,
-                          height: MediaQuery.of(context).size.height * 0.4,
-                          width: MediaQuery.of(context).size.width,
-                          imageUrl: getImageFromServer(context, image),
-                          placeholder: (context, url) =>
-                              new CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              new Icon(Icons.error),
-                        )
-                      : Image.file(
-                          _imageFile,
-                          fit: BoxFit.fill,
-                          width: MediaQuery.of(context).size.width,
+                  flexibleSpace: Stack(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.transparent,
+                        child: ClipShadowPath(
+                          clipper: WaveClipperTwo(),
+                          shadow: Shadow(blurRadius: 20),
+                          child: Container(
+                            child: _imageFile == null
+                                ? new CachedNetworkImage(
+                                    fit: BoxFit.fill,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.3,
+                                    width: MediaQuery.of(context).size.width,
+                                    imageUrl:
+                                        getImageFromServer(context, image),
+                                    placeholder: (context, url) =>
+                                        new CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        new Icon(Icons.error),
+                                  )
+                                : Image.file(
+                                    _imageFile,
+                                    fit: BoxFit.fill,
+                                    width: MediaQuery.of(context).size.width,
+                                  ),
+                            color: Colors.grey[900],
+                          ),
                         ),
-                ),
-              ),
-            ];
-          },
-          body: Container(
-            child: new Stack(
-              children: [
-                // Container(
-                //   margin: EdgeInsets.only(top: 45),
-                //   height: 65,
-                //   child: StreamBuilder<List<User>>(
-                //       stream: projectBloc.outUser,
-                //       initialData: [],
-                //       builder: (BuildContext context,
-                //           AsyncSnapshot<List<User>> snapshot) {
-                //         projectBloc.getUsers();
-                //         return snapshot.data.length > 0
-                //             ? createSelectedUsers(context, snapshot.data)
-                //             : new Container();
-                //       }),
-                // ),
-                Container(
-                  margin: EdgeInsets.only(top: 50),
-                  height: 65,
-                  child: StreamBuilder<List<Problem>>(
-                      stream: projectBloc.outProblems,
-                      initialData: [],
-                      builder: (BuildContext context,
-                          AsyncSnapshot<List<Problem>> snapshot) {
-                        projectBloc.getCreateProblems();
-                        return createSelectedProblemsCreateProbject(
-                            context, snapshot.data);
-                      }),
-                ),
-                Container(
-                  padding: EdgeInsets.only(top: 120.0),
-                  child: new DragAndDropList<MileStone>(
-                    projectBloc.getCurrentProject().milestones,
-                    itemBuilder: (BuildContext context, item) {
-                      return new SizedBox(
-                          child: InkWell(
-                        child: createMileStone(context, item),
-                        onTap: () async {
-                          ProjectBloc projectBloc =
-                              BlocProvider.of<ProjectBloc>(context);
-                          MileStoneBloc milestoneBloc =
-                              BlocProvider.of<MileStoneBloc>(context);
-                          projectBloc.selectedMilestone = item;
-                          milestoneBloc.setCurrentMileStone(item);
-                          await navigateToMilestonePage(context);
-                        },
-                        onDoubleTap: () {
-                          _showDeleteDialog(context, item);
-                        },
-                      ));
-                      //return SizedBox(child: makeCard(item, context));
-                    },
-                    onDragFinish: (before, after) {
-                      MileStone data =
-                          projectBloc.getCurrentProject().milestones[before];
-                      projectBloc
-                          .getCurrentProject()
-                          .milestones
-                          .removeAt(before);
-                      projectBloc
-                          .getCurrentProject()
-                          .milestones
-                          .insert(after, data);
-                    },
-                    canBeDraggedTo: (one, two) => true,
-                    dragElevation: 8.0,
+                      ),
+                    ],
                   ),
+                  backgroundColor: Colors.transparent,
                 ),
-              ],
+              ];
+            },
+            body: Container(
+              child: new Stack(
+                children: [
+                  // Container(
+                  //   margin: EdgeInsets.only(top: 45),
+                  //   height: 65,
+                  //   child: StreamBuilder<List<User>>(
+                  //       stream: projectBloc.outUser,
+                  //       initialData: [],
+                  //       builder: (BuildContext context,
+                  //           AsyncSnapshot<List<User>> snapshot) {
+                  //         projectBloc.getUsers();
+                  //         return snapshot.data.length > 0
+                  //             ? createSelectedUsers(context, snapshot.data)
+                  //             : new Container();
+                  //       }),
+                  // ),
+                  Container(
+                    margin: EdgeInsets.only(top: 50),
+                    height: 65,
+                    child: StreamBuilder<List<Problem>>(
+                        stream: projectBloc.outProblems,
+                        initialData: [],
+                        builder: (BuildContext context,
+                            AsyncSnapshot<List<Problem>> snapshot) {
+                          projectBloc.getCreateProblems();
+                          return createSelectedProblemsCreateProbject(
+                              context, snapshot.data);
+                        }),
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(top: 120.0),
+                    child: new DragAndDropList<MileStone>(
+                      projectBloc.getCurrentProject().milestones,
+                      itemBuilder: (BuildContext context, item) {
+                        return new SizedBox(
+                            child: InkWell(
+                          child: createMileStone(context, item),
+                          onTap: () async {
+                            ProjectBloc projectBloc =
+                                BlocProvider.of<ProjectBloc>(context);
+                            MileStoneBloc milestoneBloc =
+                                BlocProvider.of<MileStoneBloc>(context);
+                            projectBloc.selectedMilestone = item;
+                            milestoneBloc.setCurrentMileStone(item);
+                            await navigateToMilestonePage(context);
+                          },
+                          onDoubleTap: () {
+                            _showDeleteDialog(context, item);
+                          },
+                        ));
+                        //return SizedBox(child: makeCard(item, context));
+                      },
+                      onDragFinish: (before, after) {
+                        MileStone data =
+                            projectBloc.getCurrentProject().milestones[before];
+                        projectBloc
+                            .getCurrentProject()
+                            .milestones
+                            .removeAt(before);
+                        projectBloc
+                            .getCurrentProject()
+                            .milestones
+                            .insert(after, data);
+                      },
+                      canBeDraggedTo: (one, two) => true,
+                      dragElevation: 8.0,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment(1.0, 0.5),
+                    child: ProgressButton(
+                      borderRadius: 20,
+                      defaultWidget: const Icon(
+                        Icons.save,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                      progressWidget: const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white)),
+                      color: Color.fromRGBO(8, 68, 22, 0.98),
+                      width: MediaQuery.of(context).size.width * 0.3,
+                      height: MediaQuery.of(context).size.height * 0.12,
+                      onPressed: () async {
+                        final UserBloc userBloc =
+                            BlocProvider.of<UserBloc>(context);
+                        await projectBloc.postProject(
+                            _imageFile, userBloc.getUser());
+                        await projectBloc.setProjectCount();
+                        await projectBloc.setProjects();
+                        Navigator.pop(context, true);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Container(
-              height: 80,
-              padding: EdgeInsets.all(18),
-              child: FloatingActionButton(
+          floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FloatingActionButton(
                 heroTag: null,
                 backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
-                child: Icon(
-                  Icons.save,
-                  color: Colors.white,
-                ),
-                onPressed: () async {
-                  final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
-                  await projectBloc.postProject(_imageFile, userBloc.getUser());
-                  await projectBloc.setProjectCount();
-                  await projectBloc.setProjects();
-                  Navigator.pop(context, true);
-                  Navigator.of(context).pop();
+                child: const Icon(Icons.add),
+                onPressed: () {
+                  setState(() {
+                    projectBloc.createMileStone();
+                  });
                 },
               ),
-            ),
-            FloatingActionButton(
-              heroTag: null,
-              backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
-              child: const Icon(Icons.add),
-              onPressed: () {
-                setState(() {
-                  projectBloc.createMileStone();
-                });
-              },
-            ),
-          ],
+            ],
+          ),
         ),
+        onWillPop: navigateBack,
       ),
-      onWillPop: navigateBack,
     );
   }
 

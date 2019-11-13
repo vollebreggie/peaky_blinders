@@ -61,7 +61,7 @@ class _MilestoneState extends State<MilestonePage> {
 
     return new WillPopScope(
         child: Scaffold(
-          backgroundColor: Color.fromRGBO(60, 65, 74, 1),
+          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
           body: Stack(
             children: <Widget>[
               SingleChildScrollView(
@@ -118,7 +118,7 @@ class _MilestoneState extends State<MilestonePage> {
               ),
               new Positioned(
                 //Place it at the top, and not use the entire screen
-                top: 7.0,
+                top: 40.0,
                 left: 40.0,
                 right: 0.0,
                 child: TextField(

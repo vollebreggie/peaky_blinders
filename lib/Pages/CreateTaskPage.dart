@@ -1,558 +1,627 @@
-import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Bloc/UserBLoc.dart';
-import 'package:peaky_blinders/Models/Project.dart';
+import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
+import 'package:peaky_blinders/Models/ProjectDropdown.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:peaky_blinders/Models/Skill.dart';
-import 'package:peaky_blinders/widgets/TrapeziumClipper.dart';
-import 'package:peaky_blinders/widgets/createSkillCreateTaskWidget.dart';
+import 'package:peaky_blinders/Models/RoutineTask.dart';
+import 'package:peaky_blinders/Models/Task.dart';
+import 'package:peaky_blinders/Repositories/TaskRepository.dart';
+import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
+import 'package:peaky_blinders/widgets/DrawHorizontalLine.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:keyboard_visibility/keyboard_visibility.dart';
 
 class CreateTaskPage extends StatefulWidget {
   @override
-  _CreateTaskState createState() => _CreateTaskState();
+  _CreateTaskPageState createState() => _CreateTaskPageState();
 }
 
-class _CreateTaskState extends State<CreateTaskPage> {
-  final titleController = TextEditingController();
-  final descriptionController = TextEditingController();
-
-  Color priorityColors = Colors.white70;
-  Color pointsColors = Colors.white70;
-  Color titleColors = Colors.white70;
-  Color descriptionsColors = Colors.white70;
-  bool exit = true;
-  List<String> _priorities = ['Trivial', 'Valuable', 'Necessary', 'Paramount'];
-  String _selectedPriority;
+class _CreateTaskPageState extends State<CreateTaskPage> {
   List<String> _points = ['1', '2', '4', '8', '12', '18', '32', '45'];
   String _selectedPoints;
-  Project _selectedProject;
-  String image;
-  ProjectTask tempProjectTask;
+  ProjectDropdown _selectedProject;
+  MileStoneDropdown _selectedMileStone;
+  String _image;
+  var _task;
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _scrollController = ScrollController();
+  TaskBloc _taskBloc;
+  bool exit = true;
+  ProjectBloc _projectBloc;
 
   _settitleValue() {
-    if (titleController.text != "") {
-      titleColors = Colors.green;
-    } else {
-      titleColors = Colors.white70;
-    }
-
-    tempProjectTask.title = titleController.text;
+    _task.title = _titleController.text;
   }
 
   _setDescriptionValue() {
-    if (descriptionController.text != "") {
-      descriptionsColors = Colors.green;
-    } else {
-      descriptionsColors = Colors.white70;
-    }
-
-    tempProjectTask.description = descriptionController.text;
-  }
-
-  Color getPointsColor(int points) {
-    if (points < 9) {
-      return Colors.green;
-    }
-    if (points > 9 && points < 30) {
-      return Colors.orange;
-    }
-    if (points > 30) {
-      return Colors.red;
-    }
-  }
-
-  Color getPriorityColor(String priority) {
-    switch (priority) {
-      case "Valuable":
-        {
-          return Colors.yellow;
-        }
-        break;
-
-      case "Trivial":
-        {
-          return Colors.green;
-        }
-        break;
-
-      case "Paramount":
-        {
-          return Colors.red;
-        }
-        break;
-
-      case "Necessary":
-        {
-          return Colors.orange;
-        }
-        break;
-    }
+    _task.description = _descriptionController.text;
   }
 
   @override
   void initState() {
     super.initState();
 
-    titleController.addListener(_settitleValue);
-    descriptionController.addListener(_setDescriptionValue);
+    _titleController.addListener(_settitleValue);
+    _descriptionController.addListener(_setDescriptionValue);
+
+    KeyboardVisibilityNotification().addNewListener(
+      onChange: (bool visible) {
+        if (visible) {
+          _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 600),
+              curve: Curves.ease);
+        } else {
+          _scrollController.animateTo(
+              _scrollController.position.minScrollExtent,
+              duration: Duration(milliseconds: 600),
+              curve: Curves.ease);
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
-
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
-    final TaskBloc projectTaskBloc = BlocProvider.of<TaskBloc>(context);
+    _taskBloc = BlocProvider.of<TaskBloc>(context);
+    _projectBloc = BlocProvider.of<ProjectBloc>(context);
+    final MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
+    SystemUiOverlayStyle _currentStyle = SystemUiOverlayStyle.light;
 
-    tempProjectTask = projectTaskBloc.getProjectTask();
-    //tempProjectTask.project = projectBloc.getCurrentProject();
-    titleController.text = tempProjectTask.title;
-    descriptionController.text = tempProjectTask.description;
-    pointsColors = getPointsColor(tempProjectTask.points);
-    priorityColors = getPriorityColor(tempProjectTask.priority);
-    _selectedPoints = tempProjectTask.points.toString();
-    _selectedPriority = tempProjectTask.priority;
-    image = tempProjectTask.project.imagePathServer;
+    _task = _taskBloc.getProjectTask();
+    if (_task != null) {
+      _selectedPoints = _task.points.toString();
+      _titleController.text = _task.title;
+      _descriptionController.text = _task.description;
+      if (_selectedProject == null) {
+        _image = _task.runtimeType == ProjectTask
+            ? _task.project.imagePathServer
+            : "example.jpg";
+      }
+    }
+    setState(() {
+      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
+      );
+    });
 
-    return WillPopScope(
-      child: Scaffold(
-        backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-        body: Container(
-          // Add box decoration
-          decoration: BoxDecoration(
-            // Box decoration takes a gradient
-            gradient: LinearGradient(
-              // Where the linear gradient begins and ends
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              // Add one stop for each color. Stops should increase from 0 to 1
-              stops: [0.1, 0.5, 0.7, 0.9],
-              colors: [
-                // Colors are easy thanks to Flutter's Colors class.
-                Colors.black26,
-                Colors.black38,
-                Colors.black45,
-                Colors.black87,
-              ],
-            ),
-          ),
-          child: NestedScrollView(
+    return AnnotatedRegion(
+      value: _currentStyle,
+      child: new WillPopScope(
+        child: Scaffold(
+          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
+          body: NestedScrollView(
+            controller: _scrollController,
             headerSliverBuilder:
                 (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
                 SliverAppBar(
-                  expandedHeight: 200.0,
+                  expandedHeight: 300.0,
                   floating: false,
-                  pinned: true,
-                  flexibleSpace: Stack(children: <Widget>[
-                    new CachedNetworkImage(
-                      fit: BoxFit.fill,
-                      height: MediaQuery.of(context).size.height * 0.4,
-                      width: MediaQuery.of(context).size.width,
-                      imageUrl: projectTaskBloc.getImageFromProject(image),
-                      placeholder: (context, url) =>
-                          new CircularProgressIndicator(),
-                      errorWidget: (context, url, error) =>
-                          new Icon(Icons.error),
-                    ),
-                    // new Align(
-                    //   alignment: FractionalOffset.bottomLeft,
-                    //   child: Container(
-                    //     padding: EdgeInsets.only(left: 50, bottom: 20.0),
-                    //     child: new Theme(
-                    //       data: Theme.of(context).copyWith(
-                    //         canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
-                    //       ),
-                    //       child: new StreamBuilder<List<Project>>(
-                    //         stream: projectBloc.outProject,
-                    //         builder: (BuildContext context,
-                    //             AsyncSnapshot<List<Project>> snapshot) {
-                    //           projectBloc.getProjects();
-                    //           if (snapshot.hasError) {
-                    //             print(snapshot.error);
-                    //           } else {
-                    //             if (!snapshot.hasData) {
-                    //               return CircularProgressIndicator();
-                    //             } else {
-                    //               return Container(
-                    //                 child: Center(
-                    //                   child: snapshot.hasData
-                    //                       ? StreamBuilder(
-                    //                           stream: projectBloc.outProject,
-                    //                           builder: (BuildContext context,
-                    //                               AsyncSnapshot<List<Project>>
-                    //                                   projectSnapshot) {
-                    //                             return snapshot.hasData
-                    //                                 ? new Align(
-                    //                                     alignment:
-                    //                                         FractionalOffset
-                    //                                             .bottomLeft,
-                    //                                     child: Container(
-                    //                                       padding:
-                    //                                           EdgeInsets.only(
-                    //                                               left: 20),
-                    //                                       child: DropdownButton<
-                    //                                               Project>(
-                    //                                           style: new TextStyle(
-                    //                                               color: Colors
-                    //                                                   .white70,
-                    //                                               fontSize: 30.0),
-                    //                                           onChanged: (Project
-                    //                                               value) {
-                    //                                             _selectedProject =
-                    //                                                 value;
-                    //                                                 tempProjectTask.project = value;
-                    //                                             setState(() {
-                    //                                               _selectedProject =
-                    //                                                   value;
-                    //                                               image = value
-                    //                                                   .imagePathServer;
-                    //                                             });
-                    //                                           },
-                    //                                           value: _selectedProject
-                    //                                                     ,
-                    //                                           items:
-                    //                                               snapshot.data !=
-                    //                                                       null
-                    //                                                   ? snapshot.data
-                    //                                                       .map<DropdownMenuItem<Project>>(
-                    //                                                           (Project value) {
-                    //                                                       return DropdownMenuItem<
-                    //                                                           Project>(
-                    //                                                         value:
-                    //                                                             value,
-                    //                                                         child: Text(
-                    //                                                             value.title,
-                    //                                                             style: new TextStyle(color: Colors.white70, fontSize: 30.0)),
-                    //                                                       );
-                    //                                                     }).toList()
-                    //                                                   : SizedBox(height: 0.0)),
-                    //                                     ))
-                    //                                 : CircularProgressIndicator();
-                    //                           })
-                    //                       : CircularProgressIndicator(),
-                    //                 ),
-                    //               );
-                    //             }
-                    //           }
-                    //         },
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // new Align(
-                    //   alignment: FractionalOffset.bottomLeft,
-                    //   child: Container(
-                    //     padding: EdgeInsets.only(top: 20.0),
-                    //     child: LinearProgressIndicator(
-                    //         backgroundColor: Color.fromRGBO(209, 224, 224, 0.2),
-                    //         value: tempProjectTask.project.getProgress(),
-                    //         valueColor: AlwaysStoppedAnimation(Colors.green)),
-                    //   ),
-                    // )
-                  ]),
+                  pinned: false,
+                  flexibleSpace: Stack(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.4,
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.transparent,
+                        child: ClipShadowPath(
+                          clipper: WaveClipperTwo(),
+                          shadow: Shadow(blurRadius: 20),
+                          child: Container(
+                            child: new CachedNetworkImage(
+                              fit: BoxFit.fill,
+                              height: MediaQuery.of(context).size.height * 0.5,
+                              width: MediaQuery.of(context).size.width,
+                              imageUrl: _taskBloc.getImageFromProject(_image),
+                              placeholder: (context, url) =>
+                                  new CircularProgressIndicator(),
+                              errorWidget: (context, url, error) =>
+                                  new Icon(Icons.error),
+                            ),
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   backgroundColor: Colors.transparent,
                 ),
               ];
             },
-            body: Center(
-              child: SingleChildScrollView(
-                child: new Column(
-                  children: [
-                    Stack(
-                      children: <Widget>[
-                        new Container(
-                          alignment: Alignment.topCenter,
-                          height: 60,
-                          width: MediaQuery.of(context).size.width,
-                          //color: Colors.grey[900],
-                          decoration: new BoxDecoration(
-                            color: Colors.grey[900],
-                            borderRadius: new BorderRadius.all(
-                              const Radius.circular(10.0),
-                            ),
-                          ),
-                          margin: new EdgeInsets.only(
-                              top: 10.0, left: 5, right: 5, bottom: 5),
-                          child: new Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                new Container(
-                                    alignment: Alignment.centerLeft,
-                                    margin: new EdgeInsets.only(
-                                        left: 20,
-                                        right:
-                                            MediaQuery.of(context).size.width *
-                                                0.6),
-                                    child: Icon(Icons.show_chart,
-                                        color: pointsColors)),
-                                new Theme(
-                                  data: Theme.of(context).copyWith(
-                                    canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
-                                  ),
-                                  child: new DropdownButton(
-                                    hint: Text('Points',
-                                        style: new TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 15.0)),
-                                    value: _selectedPoints,
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        tempProjectTask.points =
-                                            int.parse(newValue);
-                                        pointsColors =
-                                            getPointsColor(int.parse(newValue));
-                                        _selectedPoints = newValue;
-                                      });
-                                    },
-                                    items: _points.map((location) {
-                                      return DropdownMenuItem(
-                                        child: new Text(location,
-                                            style: new TextStyle(
-                                                color: Colors.white70)),
-                                        value: location,
-                                      );
-                                    }).toList(),
-                                  ),
-                                )
-                              ]),
-                        ),
-                        Container(
-                          padding:
-                              EdgeInsets.only(left: 5.0, top: 10.0, right: 5),
-                          child: ClipPath(
-                            clipper: TrapeziumClipper(),
-                            child: Container(
-                              decoration: new BoxDecoration(
-                                  color: Color.fromRGBO(8, 68, 22, 1.0),
-                                  borderRadius: new BorderRadius.only(
-                                      topLeft: const Radius.circular(10.0),
-                                      bottomLeft: const Radius.circular(10.0))),
-                              //color: Color.fromRGBO(6, 32, 12, 1.0),
-                              //padding: EdgeInsets.all(8.0),
-                              width: MediaQuery.of(context).size.width * 0.2,
-                              height: 60,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    padding: EdgeInsets.only(right: 15),
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                          // maxHeight: 70,
-                                          maxWidth: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.3),
-                                      child: Center(
-                                        child: Container(
-                                          padding: EdgeInsets.only(top: 10),
-                                          child: Icon(Icons.show_chart,
-                                              color: Colors.white, size: 35),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Stack(
-                      children: <Widget>[
-                        Container(
-                          margin:
-                              EdgeInsets.only(left: 20.0, top: 10.0, right: 5),
-                          decoration: new BoxDecoration(
-                            color: Colors.grey[900],
-                            borderRadius: new BorderRadius.only(
-                              topRight: const Radius.circular(10.0),
-                              bottomRight: const Radius.circular(10.0),
-                              topLeft: const Radius.circular(20.0),
-                              bottomLeft: const Radius.circular(20.0),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              ListTile(
-                                leading: Icon(Icons.description,
-                                    color: Colors.green),
-                                title: TextField(
-                                  cursorColor: Colors.white,
-                                  textAlign: TextAlign.left,
-                                  controller: titleController,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontStyle: FontStyle.normal,
-                                      fontSize: 20),
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding:
-                              EdgeInsets.only(left: 5.0, top: 10.0, right: 5),
-                          child: ClipPath(
-                            clipper: TrapeziumClipper(),
-                            child: Container(
-                              decoration: new BoxDecoration(
-                                  color: Color.fromRGBO(8, 68, 22, 1.0),
-                                  borderRadius: new BorderRadius.only(
-                                      topLeft: const Radius.circular(10.0),
-                                      bottomLeft: const Radius.circular(10.0))),
-                              //color: Color.fromRGBO(6, 32, 12, 1.0),
-                              //padding: EdgeInsets.all(8.0),
-                              width: MediaQuery.of(context).size.width * 0.2,
-                              height: 56,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    padding: EdgeInsets.only(right: 15),
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                          // maxHeight: 70,
-                                          maxWidth: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.3),
-                                      child: Center(
-                                        child: Container(
-                                          padding: EdgeInsets.only(top: 10),
-                                          child: Icon(Icons.description,
-                                              color: Colors.white, size: 35),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(bottom: 10),
-                      height: 65,
-                      child: StreamBuilder<List<Skill>>(
-                          stream: projectTaskBloc.outSkill,
-                          initialData: [],
-                          builder: (BuildContext context,
-                              AsyncSnapshot<List<Skill>> snapshot) {
-                            projectTaskBloc.getCreateSkills();
-                            return createSelectedSkillssCreateTask(
-                                context, snapshot.data);
-                          }),
-                    ),
-                    new Container(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      color: Colors.transparent,
-                      child: new Column(
-                        children: [
-                          Center(
-                            child: Card(
-                              elevation: 25,
-                              color: Colors.transparent,
-                              child: Container(
-                                child: Center(
-                                  child: Card(
-                                    elevation: 1,
-                                    color: Colors.transparent,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.only(
-                                              bottom: 0, top: 0),
-                                          height: 200,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          //padding: EdgeInsets.all(10.0),
-                                          child: new ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxHeight: 200.0,
-                                            ),
-                                            child: new Scrollbar(
-                                              child: new SingleChildScrollView(
-                                                scrollDirection: Axis.vertical,
-                                                reverse: true,
-                                                child: SizedBox(
-                                                  height: 200.0,
-                                                  child: new TextField(
-                                                    controller:
-                                                        descriptionController,
-                                                    cursorColor: Colors.white,
-                                                    textAlign: TextAlign.left,
-                                                    maxLines: 100,
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontStyle:
-                                                          FontStyle.normal,
-                                                    ),
-                                                    decoration:
-                                                        new InputDecoration(
-                                                            border: InputBorder
-                                                                .none,
-                                                            hintText:
-                                                                'Description'),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+            body: Stack(
+              children: <Widget>[
+                Align(
+                  alignment: Alignment(-0.8, -0.95),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.45,
+                    child: TextField(
+                      maxLines: 1,
+                      controller: _titleController,
+                      cursorColor: Colors.white,
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 15),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Enter your task here.",
+                        labelText: 'Task',
+                        focusColor: Colors.white,
+                        suffixStyle: TextStyle(color: Colors.white),
+                        hintStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                Align(
+                  alignment: Alignment(-0.65, 0.3),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.62,
+                    child: TextField(
+                      controller: _descriptionController,
+                      maxLines: 10,
+                      cursorColor: Colors.white70,
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontStyle: FontStyle.normal,
+                          fontSize: 13),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: "Enter your description here.",
+                        labelText: 'Description',
+                        focusColor: Colors.white,
+                        suffixStyle: TextStyle(color: Colors.white),
+                        helperStyle: TextStyle(color: Colors.white),
+                        hintStyle: TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.white38),
+                      ),
+                    ),
+                  ),
+                ),
+                _task.runtimeType == ProjectTask
+                    ? Align(
+                        alignment: Alignment(0.8, -0.95),
+                        child: new Theme(
+                          data: Theme.of(context).copyWith(
+                            canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                          ),
+                          child: ButtonTheme(
+                            //layoutBehavior: ButtonBarLayoutBehavior.padded,
+                            alignedDropdown: true,
+                            buttonColor: Colors.transparent,
+                            child: new StreamBuilder<List<ProjectDropdown>>(
+                              stream: _projectBloc.outProjectDropdown,
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<List<ProjectDropdown>>
+                                      snapshot) {
+                                _projectBloc.getDropdownProject();
+                                if (snapshot.hasError) {
+                                  print(snapshot.error);
+                                } else {
+                                  if (!snapshot.hasData) {
+                                    return CircularProgressIndicator();
+                                  } else {
+                                    if (_selectedProject == null) {
+                                      ProjectDropdown result = snapshot.data
+                                          .firstWhere(
+                                              (o) => o.id == _task.project.id);
+                                      _selectedProject = result;
+
+                                      milestoneBloc.getDropdownMileStone(
+                                          _selectedProject.id);
+                                    }
+                                  }
+                                }
+                                return new DropdownButton<ProjectDropdown>(
+                                  iconDisabledColor: Colors.transparent,
+                                  iconEnabledColor: Colors.transparent,
+                                  underline: Stack(
+                                    children: <Widget>[
+                                      Align(
+                                        alignment: Alignment(-1.15, 2.0),
+                                        child: Container(
+                                          padding:
+                                              const EdgeInsets.only(top: 0.0),
+                                          child: Icon(
+                                            Icons.arrow_drop_up,
+                                            color: Colors.white30,
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      ),
+                                      Align(
+                                        alignment: Alignment(0, -2),
+                                        child: Container(
+                                          padding:
+                                              const EdgeInsets.only(top: 25.0),
+                                          child: CustomPaint(
+                                            size: Size.square(2),
+                                            painter: new Drawhorizontalline(75),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  hint: SizedBox(
+                                    width: 100.0, // for example
+                                    child: Text(
+                                      'Projects',
+                                      textAlign: TextAlign.center,
+                                      style: new TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 15.0),
+                                    ),
+                                  ),
+                                  value: _selectedProject,
+                                  onChanged: (ProjectDropdown value) async {
+                                    var project = _projectBloc
+                                        .getProjectsDragAndDrop()
+                                        .firstWhere((p) => p.id == value.id);
+                                    (_taskBloc.getTasksToday().first
+                                            as ProjectTask)
+                                        .project = project;
+                                    (_taskBloc.getNextTask() as ProjectTask)
+                                        .project = project;
+                                    _selectedProject = value;
+                                    _selectedMileStone = null;
+                                    await milestoneBloc.getDropdownMileStone(
+                                        _selectedProject.id);
+                                    setState(() {
+                                      _image = value.imagePathServer;
+                                    });
+                                  },
+                                  items: snapshot.data != null
+                                      ? snapshot.data.map<
+                                          DropdownMenuItem<
+                                              ProjectDropdown>>(
+                                          (ProjectDropdown item) {
+                                          return DropdownMenuItem(
+                                              value: item,
+                                              child: Builder(
+                                                builder:
+                                                    (BuildContext context) {
+                                                  final bool isDropDown = context
+                                                          .ancestorStateOfType(
+                                                              TypeMatcher<
+                                                                  _CreateTaskPageState>()) ==
+                                                      null;
+                                                  if (isDropDown) {
+                                                    return SizedBox(
+                                                      width:
+                                                          200.0, // for example
+                                                      child: Text(
+                                                        item.title,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 15),
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    return SizedBox(
+                                                      width:
+                                                          100.0, // for example
+                                                      child: Text(
+                                                        item.title.length <= 9
+                                                            ? item.title
+                                                            : item.title
+                                                                    .substring(
+                                                                        0, 9) +
+                                                                "..",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 15),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                              ));
+                                        }).toList()
+                                      : [],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(),
+                _task.runtimeType == ProjectTask
+                    ? Align(
+                        alignment: Alignment(0.8, -0.65),
+                        child: new Theme(
+                          data: Theme.of(context).copyWith(
+                            canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                          ),
+                          child: ButtonTheme(
+                            alignedDropdown: true,
+                            buttonColor: Colors.transparent,
+                            child: new StreamBuilder<List<MileStoneDropdown>>(
+                              stream: milestoneBloc.outMileStoneDropdown,
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<List<MileStoneDropdown>>
+                                      snapshot) {
+                                if (snapshot.hasError) {
+                                  print(snapshot.error);
+                                } else {
+                                  if (!snapshot.hasData) {
+                                    return CircularProgressIndicator();
+                                  } else {
+                                    if (_selectedMileStone == null) {
+                                      if (snapshot.data.first.projectId ==
+                                          _task.projectId) {
+                                        _selectedMileStone = snapshot.data
+                                            .firstWhere((m) =>
+                                                m.id == _task.milestoneId);
+                                      } else {
+                                        _selectedMileStone =
+                                            snapshot.data.first;
+                                      }
+                                    }
+                                  }
+                                }
+                                return new DropdownButton<MileStoneDropdown>(
+                                  iconDisabledColor: Colors.transparent,
+                                  iconEnabledColor: Colors.transparent,
+                                  underline: Stack(
+                                    children: <Widget>[
+                                      Align(
+                                        alignment: Alignment(-1.15, 2.0),
+                                        child: Container(
+                                          padding:
+                                              const EdgeInsets.only(top: 0.0),
+                                          child: Icon(
+                                            Icons.arrow_drop_up,
+                                            color: Colors.white30,
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      ),
+                                      Align(
+                                        alignment: Alignment(0, -2),
+                                        child: Container(
+                                          padding:
+                                              const EdgeInsets.only(top: 25.0),
+                                          child: CustomPaint(
+                                            size: Size.square(2),
+                                            painter: new Drawhorizontalline(75),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  hint: SizedBox(
+                                    width: 100.0, // for example
+                                    child: Text(
+                                      'Milestones',
+                                      textAlign: TextAlign.center,
+                                      style: new TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 15.0),
+                                    ),
+                                  ),
+                                  value: _selectedMileStone,
+                                  onChanged: (MileStoneDropdown value) {
+                                    setState(() {
+                                      _selectedMileStone = value;
+                                    });
+                                  },
+                                  items: snapshot.data != null
+                                      ? snapshot.data.map<
+                                          DropdownMenuItem<
+                                              MileStoneDropdown>>(
+                                          (MileStoneDropdown item) {
+                                          return DropdownMenuItem(
+                                              value: item,
+                                              child: Builder(
+                                                builder:
+                                                    (BuildContext context) {
+                                                  final bool isDropDown = context
+                                                          .ancestorStateOfType(
+                                                              TypeMatcher<
+                                                                  _CreateTaskPageState>()) ==
+                                                      null;
+                                                  if (isDropDown) {
+                                                    return SizedBox(
+                                                      width:
+                                                          200.0, // for example
+                                                      child: Text(
+                                                        item.title,
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 10),
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    return SizedBox(
+                                                      width:
+                                                          100.0, // for example
+                                                      child: Text(
+                                                        item.title.length <= 18
+                                                            ? item.title
+                                                            : item.title
+                                                                    .substring(
+                                                                        0, 18) +
+                                                                "..",
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white54,
+                                                            fontSize: 10),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                              ));
+                                        }).toList()
+                                      : [],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(),
+                Align(
+                  alignment: Alignment(
+                      0.8, _task.runtimeType == ProjectTask ? -0.35 : -0.9),
+                  child: new Theme(
+                    data: Theme.of(context).copyWith(
+                      canvasColor: Color.fromRGBO(0, 0, 0, 0.8),
+                    ),
+                    child: ButtonTheme(
+                      //layoutBehavior: ButtonBarLayoutBehavior.padded,
+                      alignedDropdown: true,
+                      buttonColor: Colors.transparent,
+                      child: new DropdownButton(
+                        iconDisabledColor: Colors.transparent,
+                        iconEnabledColor: Colors.transparent,
+                        style: TextStyle(),
+                        underline: Stack(
+                          children: <Widget>[
+                            Align(
+                              alignment: Alignment(-1.15, 2.0),
+                              child: Container(
+                                padding: const EdgeInsets.only(top: 0.0),
+                                child: Icon(
+                                  Icons.arrow_drop_up,
+                                  color: Colors.white30,
+                                  size: 30.0,
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment(0, -2),
+                              child: Container(
+                                padding: const EdgeInsets.only(top: 25.0),
+                                child: CustomPaint(
+                                  size: Size.square(2),
+                                  painter: new Drawhorizontalline(75),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        hint: SizedBox(
+                          width: 100.0, // for example
+                          child: Text(
+                            'Points',
+                            textAlign: TextAlign.center,
+                            style: new TextStyle(
+                                color: Colors.white54, fontSize: 15.0),
+                          ),
+                        ),
+                        value: _selectedPoints,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _task.points = int.parse(newValue);
+                            _selectedPoints = newValue;
+                          });
+                          if (_taskBloc.getTasksToday().length != 0) {
+                            _taskBloc.getTasksToday().first.points =
+                                int.parse(newValue);
+                          }
+                        },
+                        items: _points.map((point) {
+                          return DropdownMenuItem(
+                              value: point,
+                              child: Builder(
+                                builder: (BuildContext context) {
+                                  final bool isDropDown =
+                                      context.ancestorStateOfType(TypeMatcher<
+                                              _CreateTaskPageState>()) ==
+                                          null;
+                                  if (isDropDown) {
+                                    return SizedBox(
+                                      width: 100.0, // for example
+                                      child: Text(
+                                        point,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
+                                    );
+                                  } else {
+                                    return SizedBox(
+                                      width: 100.0, // for example
+                                      child: Text(
+                                        point,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 20),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ));
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(1.0, 0.5),
+                  child: ProgressButton(
+                    borderRadius: 20,
+                    defaultWidget: const Icon(
+                      Icons.save,
+                      size: 50,
+                      color: Colors.white,
+                    ),
+                    progressWidget: const CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white)),
+                    color: Color.fromRGBO(8, 68, 22, 0.98),
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    height: MediaQuery.of(context).size.height * 0.12,
+                    onPressed: () async {
+                      final UserBloc userBloc =
+                          BlocProvider.of<UserBloc>(context);
+                      _task.user = userBloc.getUser();
+                      _task.skills = _taskBloc.selectedSkills;
+                      final MileStoneBloc milestoneBloc =
+                          BlocProvider.of<MileStoneBloc>(context);
+                      milestoneBloc.getCurrentMileStone().tasks.add(_task);
+
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Color.fromRGBO(12, 62, 18, 0.8),
-          child: const Icon(Icons.save),
-          onPressed: () {
-            // SaveProjectTask(context);
-            final UserBloc userBloc = BlocProvider.of<UserBloc>(context);
-            tempProjectTask.user = userBloc.getUser();
-            tempProjectTask.skills = projectTaskBloc.selectedSkills;
-            final MileStoneBloc milestoneBloc =
-                BlocProvider.of<MileStoneBloc>(context);
-            milestoneBloc.getCurrentMileStone().tasks.add(tempProjectTask);
-
-            Navigator.pop(context);
-          },
-        ),
+        onWillPop: navigateBack,
       ),
-      onWillPop: navigateBack,
     );
   }
 
