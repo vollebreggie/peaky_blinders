@@ -64,11 +64,6 @@ class _MilestoneState extends State<MilestonePage> {
           backgroundColor: Color.fromRGBO(44, 44, 44, 1),
           body: Stack(
             children: <Widget>[
-              SingleChildScrollView(
-                child: new Column(
-                  children: [],
-                ),
-              ),
               projectBloc.selectedMilestone.tasks != null
                   ? Container(
                       padding: EdgeInsets.only(top: 50.0),
@@ -106,34 +101,35 @@ class _MilestoneState extends State<MilestonePage> {
                     )
                   : Container(),
               new Positioned(
-                //Place it at the top, and not use the entire screen
                 top: 0.0,
                 left: 0.0,
                 right: 0.0,
                 child: AppBar(
-                  backgroundColor: Colors.transparent, //No more green
+                  backgroundColor: Color.fromRGBO(44, 44, 44, 1), //No more green
                   elevation: 0.0,
                   //Shadow gone
                 ),
               ),
               new Positioned(
-                //Place it at the top, and not use the entire screen
                 top: 40.0,
                 left: 40.0,
                 right: 0.0,
-                child: TextField(
-                  cursorColor: Colors.white,
-                  textAlign: TextAlign.center,
-                  controller: titleController,
-                  style: TextStyle(
-                    // backgroundColor: Colors.transparent,
-                    color: Colors.white,
-                    fontSize: 16.0,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: "Milestone Title",
-                    border: InputBorder.none,
-                    fillColor: Colors.transparent,
+                child: Container(
+                  color: Color.fromRGBO(44, 44, 44, 1),
+                  child: TextField(
+                    cursorColor: Colors.white,
+                    textAlign: TextAlign.center,
+                    controller: titleController,
+                    style: TextStyle(
+                      // backgroundColor: Colors.transparent,
+                      color: Colors.white,
+                      fontSize: 16.0,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "Milestone Title",
+                      border: InputBorder.none,
+                      fillColor: Colors.red,
+                    ),
                   ),
                 ),
               ),
@@ -191,9 +187,9 @@ class _MilestoneState extends State<MilestonePage> {
                 onPressed: () async {
                   projectBloc.selectedMilestone.tasks
                       .removeWhere((t) => t == projectTask);
-                      if(projectTask.id != 0) {
-                        taskBloc.deleteTaskAsync(projectTask);
-                      }
+                  if (projectTask.id != 0) {
+                    taskBloc.deleteTaskAsync(projectTask);
+                  }
                   setState(() {});
                   Navigator.of(context).pop();
                 },

@@ -35,6 +35,8 @@ class _CreateTaskTodayPageState extends State<CreateTaskTodayPage> {
   TaskBloc _taskBloc;
   bool exit = true;
   ProjectBloc _projectBloc;
+  int _selectionTitle = 0;
+  int _selectionDescription = 0;
 
   _settitleValue() {
     _task.title = _titleController.text;
@@ -64,6 +66,8 @@ class _CreateTaskTodayPageState extends State<CreateTaskTodayPage> {
               duration: Duration(milliseconds: 600),
               curve: Curves.ease);
         }
+        _selectionTitle = _titleController.selection.baseOffset;
+        _selectionDescription = _descriptionController.selection.baseOffset;
       },
     );
   }
@@ -88,6 +92,10 @@ class _CreateTaskTodayPageState extends State<CreateTaskTodayPage> {
       _selectedPoints = _task.points.toString();
       _titleController.text = _task.title;
       _descriptionController.text = _task.description;
+      _titleController.selection =
+          TextSelection.collapsed(offset: _selectionTitle);
+      _descriptionController.selection =
+          TextSelection.collapsed(offset: _selectionDescription);
       
     }
     setState(() {

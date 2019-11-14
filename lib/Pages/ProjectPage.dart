@@ -3,19 +3,24 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
+import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
+import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
 import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Models/User.dart';
 import 'package:peaky_blinders/Pages/MilestonePage.dart';
+import 'package:peaky_blinders/Pages/TVUserListPage.dart';
 import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
-import 'package:peaky_blinders/Pages/ProblemSelectionList.dart';
-import 'package:peaky_blinders/Pages/UserListPage.dart';
+import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
 import 'package:peaky_blinders/widgets/MileStone.dart';
 import 'package:peaky_blinders/widgets/SelectedUsers.dart';
+import 'package:peaky_blinders/widgets/selectedProblemsCreateWidget.dart';
 import 'package:peaky_blinders/widgets/selectedProblemsWidget.dart';
 
 class ProjectPage extends StatefulWidget {
@@ -58,153 +63,189 @@ class _Project extends State<ProjectPage> {
     mileStoneBloc = BlocProvider.of<MileStoneBloc>(context);
     titleController.text = projectBloc.getCurrentProject().title;
 
-    return WillPopScope(
-        child: Scaffold(
-          backgroundColor: Color.fromRGBO(44, 44, 44, 1),
-          body: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
-              return <Widget>[
-                SliverAppBar(
-                  elevation: 0,
-                  backgroundColor: Color.fromRGBO(60, 65, 74, 1),
-                  expandedHeight: 200.0,
-                  floating: false,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: true,
-                    titlePadding: EdgeInsets.only(top: 5, right: 100),
+    SystemUiOverlayStyle _currentStyle = SystemUiOverlayStyle.light;
+
+    setState(() {
+      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
+      );
+    });
+
+    return AnnotatedRegion(
+      value: _currentStyle,
+      child: WillPopScope(
+          child: Scaffold(
+            backgroundColor: Color.fromRGBO(44, 44, 44, 1),
+            body: NestedScrollView(
+              headerSliverBuilder:
+                  (BuildContext context, bool innerBoxIsScrolled) {
+                return <Widget>[
+                  SliverAppBar(
+                    expandedHeight: 300.0,
+                    floating: false,
+                    pinned: false,
                     title: Stack(
                       children: <Widget>[
-                        TextField(
-                          cursorColor: Colors.white,
-                          textAlign: TextAlign.center,
-                          controller: titleController,
-                          style: TextStyle(
-                            // backgroundColor: Colors.transparent,
-                            color: Colors.white,
-                            fontSize: 16.0,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Project Title",
-                            border: InputBorder.none,
-                            fillColor: Colors.transparent,
+                        new Positioned(
+                          top: 0,
+                          right: 20,
+                          child: new Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: TextField(
+                              cursorColor: Colors.white,
+                              textAlign: TextAlign.center,
+                              controller: titleController,
+                              style: TextStyle(
+                                // backgroundColor: Colors.transparent,
+                                color: Colors.white,
+                                fontSize: 25.0,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Project Title",
+                                border: InputBorder.none,
+                                fillColor: Colors.transparent,
+                              ),
+                            ),
                           ),
                         ),
                         new Positioned(
-                          bottom: 5,
-                          right: 0,
+                          right: 20,
                           child: new Container(
                             child: new IconButton(
                               color: Colors.white70,
                               icon: new Icon(
                                 Icons.image,
-                                size: 40,
+                                size: 55,
                               ),
                               onPressed: getImage,
+                            ),
+                            //  margin: EdgeInsets.only(left: 280, bottom: 20.0),
+                          ),
+                        ),
+                      ],
+                    ),
+                    flexibleSpace: Stack(
+                      children: <Widget>[
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          width: MediaQuery.of(context).size.width,
+                          color: Colors.transparent,
+                          child: ClipShadowPath(
+                            clipper: WaveClipperTwo(),
+                            shadow: Shadow(blurRadius: 20),
+                            child: Container(
+                              child: _imageFile == null
+                                  ? new CachedNetworkImage(
+                                      fit: BoxFit.fill,
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.4,
+                                      width: MediaQuery.of(context).size.width,
+                                      imageUrl: getImageFromServer(
+                                          context,
+                                          projectBloc
+                                              .getCurrentProject()
+                                              .imagePathServer),
+                                      placeholder: (context, url) =>
+                                          new CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) =>
+                                          new Icon(Icons.error),
+                                    )
+                                  : Image.file(
+                                      _imageFile,
+                                      fit: BoxFit.fill,
+                                      width: MediaQuery.of(context).size.width,
+                                    ),
+                              color: Colors.grey[900],
                             ),
                           ),
                         ),
                       ],
                     ),
-                    background: _imageFile == null
-                        ? new CachedNetworkImage(
-                            fit: BoxFit.fill,
-                            height: MediaQuery.of(context).size.height * 0.4,
-                            width: MediaQuery.of(context).size.width,
-                            imageUrl: getImageFromServer(
-                                context,
-                                projectBloc
-                                    .getCurrentProject()
-                                    .imagePathServer),
-                            placeholder: (context, url) =>
-                                new CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                new Icon(Icons.error),
-                          )
-                        : Image.file(
-                            _imageFile,
-                            fit: BoxFit.fill,
-                            width: MediaQuery.of(context).size.width,
-                          ),
+                    backgroundColor: Colors.transparent,
                   ),
+                ];
+              },
+              body: Container(
+                child: new Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(top: 45),
+                      height: 65,
+                      child: StreamBuilder<List<User>>(
+                          stream: projectBloc.outUser,
+                          initialData: [],
+                          builder: (BuildContext context,
+                              AsyncSnapshot<List<User>> snapshot) {
+                            projectBloc.getUsers();
+                            return createSelectedUsers(context, snapshot.data);
+                          }),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 110),
+                      height: 65,
+                      child: StreamBuilder<List<Problem>>(
+                          stream: projectBloc.outProblems,
+                          initialData: [],
+                          builder: (BuildContext context,
+                              AsyncSnapshot<List<Problem>> snapshot) {
+                            projectBloc.getProblems();
+                            return createSelectedProblems(
+                                context, snapshot.data);
+                          }),
+                    ),
+                    Container(
+                        padding: EdgeInsets.only(top: 185.0),
+                        child: new DragAndDropList<MileStone>(
+                          mileStoneBloc.milestones,
+                          itemBuilder: (BuildContext context, item) {
+                            return new SizedBox(
+                                child: InkWell(
+                              child: createMileStone(context, item),
+                              onTap: () async {
+                                ProjectBloc projectBloc =
+                                    BlocProvider.of<ProjectBloc>(context);
+                                MileStoneBloc milestoneBloc =
+                                    BlocProvider.of<MileStoneBloc>(context);
+                                projectBloc.selectedMilestone = item;
+                                milestoneBloc.setCurrentMileStone(item);
+                                await navigateToMilestonePage(context);
+                              },
+                              onDoubleTap: () {
+                                _showDeleteDialog(context, item);
+                              },
+                            ));
+                          },
+                          onDragFinish: (before, after) {
+                            MileStone data = mileStoneBloc.milestones[before];
+                            mileStoneBloc.milestones.removeAt(before);
+                            data.place = after;
+                            mileStoneBloc.milestones.insert(after, data);
+                          },
+                          canBeDraggedTo: (one, two) => true,
+                          dragElevation: 8.0,
+                        )),
+                  ],
                 ),
-              ];
-            },
-            body: Container(
-              child: new Stack(
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(top: 45),
-                    height: 65,
-                    child: StreamBuilder<List<User>>(
-                        stream: projectBloc.outUser,
-                        initialData: [],
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<User>> snapshot) {
-                          projectBloc.getUsers();
-                          return createSelectedUsers(context, snapshot.data);
-                        }),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(top: 110),
-                    height: 65,
-                    child: StreamBuilder<List<Problem>>(
-                        stream: projectBloc.outProblems,
-                        initialData: [],
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<Problem>> snapshot) {
-                          projectBloc.getProblems();
-                          return createSelectedProblems(context, snapshot.data);
-                        }),
-                  ),
-                  Container(
-                      padding: EdgeInsets.only(top: 185.0),
-                      child: new DragAndDropList<MileStone>(
-                        mileStoneBloc.milestones,
-                        itemBuilder: (BuildContext context, item) {
-                          return new SizedBox(
-                              child: InkWell(
-                            child: createMileStone(context, item),
-                            onTap: () async {
-                              ProjectBloc projectBloc =
-                                  BlocProvider.of<ProjectBloc>(context);
-                              MileStoneBloc milestoneBloc =
-                                  BlocProvider.of<MileStoneBloc>(context);
-                              projectBloc.selectedMilestone = item;
-                              milestoneBloc.setCurrentMileStone(item);
-                              await navigateToMilestonePage(context);
-                            },
-                            onDoubleTap: () {
-                              _showDeleteDialog(context, item);
-                            },
-                          ));
-                        },
-                        onDragFinish: (before, after) {
-                          MileStone data = mileStoneBloc.milestones[before];
-                          mileStoneBloc.milestones.removeAt(before);
-                          data.place = after;
-                          mileStoneBloc.milestones.insert(after, data);
-                        },
-                        canBeDraggedTo: (one, two) => true,
-                        dragElevation: 8.0,
-                      )),
-                ],
               ),
             ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: null,
-            backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
-            child: const Icon(Icons.add),
-            onPressed: () {
-              mileStoneBloc.createMileStone(projectBloc.getCurrentProject().id);
+            floatingActionButton: FloatingActionButton(
+              heroTag: null,
+              backgroundColor: Color.fromRGBO(47, 87, 53, 0.8),
+              child: const Icon(Icons.add),
+              onPressed: () {
+                mileStoneBloc
+                    .createMileStone(projectBloc.getCurrentProject().id);
 
-              setState(() {});
-            },
+                setState(() {});
+              },
+            ),
           ),
-        ),
-        onWillPop: navigateBack);
+          onWillPop: navigateBack),
+    );
   }
 
   Future<bool> navigateBack() async {
@@ -222,53 +263,14 @@ class _Project extends State<ProjectPage> {
   }
 
   Future navigateToUserListPage(context) async {
+    //tvBloc.syncUnselectedUsers();
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => UserListPage()));
-  }
-
-  Future navigateToProblemListPage(context) async {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => ProblemSelectionListPage()));
+        context, MaterialPageRoute(builder: (context) => TVUserListPage()));
   }
 
   Future navigateToMilestonePage(context) async {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => MilestonePage()));
-  }
-
-  List<Widget> getProblems(context, problems) {
-    List<Widget> widgets = [];
-
-    widgets.addAll(problems
-        .map<Widget>((problem) => Container(
-              padding: EdgeInsets.only(right: 5),
-              child: ClipRRect(
-                borderRadius: new BorderRadius.circular(8.0),
-                child: new CachedNetworkImage(
-                  fit: BoxFit.fill,
-                  height: 40,
-                  width: 40,
-                  imageUrl: getImageFromServer(context, problem.image),
-                  placeholder: (context, url) =>
-                      new CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => new Icon(Icons.error),
-                ),
-              ),
-            ))
-        .toList());
-
-    widgets.add(
-      new IconButton(
-        color: Colors.white70,
-        icon: new Icon(
-          Icons.add,
-          size: 30,
-        ),
-        onPressed: () => navigateToProblemListPage(context),
-      ),
-    );
-
-    return widgets;
   }
 
   List<Widget> getImageOfUser(context, users) {
@@ -337,55 +339,6 @@ class _Project extends State<ProjectPage> {
         ),
       );
 
-  void _showDeleteDialog(context, MileStone milestone) {
-    MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: new Text(
-            "Delete Milestone?",
-            textAlign: TextAlign.center,
-          ),
-          actions: <Widget>[
-            ButtonTheme(
-              minWidth: 150.0,
-              height: 40.0,
-              child: RaisedButton(
-                color: Colors.red,
-                onPressed: () async {
-                  if (milestone.id != 0) {
-                    int projectId = milestone.projectId;
-                    await mileStoneBloc.deleteMileStoneById(milestone.id);
-                  }
-                  mileStoneBloc.milestones.remove(milestone);
-                  setState(() {});
-                  Navigator.of(context).pop();
-                },
-                splashColor: Colors.grey,
-                textColor: Colors.white,
-                padding: const EdgeInsets.all(0.0),
-                shape: new RoundedRectangleBorder(
-                    borderRadius: new BorderRadius.circular(5.0)),
-                child: Container(
-                  //margin: const EdgeInsets.all(10.0),
-                  child: Text('Delete'),
-                ),
-              ),
-            ),
-            new FlatButton(
-              child: new Text("Cancel"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   ListTile makeListTile(MileStone milestone, BuildContext context) => ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         leading: Container(
@@ -432,9 +385,54 @@ class _Project extends State<ProjectPage> {
     setState(() {
       _imageFile = image;
     });
+  }
 
-    await projectBloc.updateCurrentProject(_imageFile);
-    projectBloc.getCurrentProject().imagePathServer = await projectBloc
-        .getStringImageProject(projectBloc.getCurrentProject().id);
+  void _showDeleteDialog(context, MileStone milestone) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(
+            "Delete Milestone?",
+            textAlign: TextAlign.center,
+          ),
+          actions: <Widget>[
+            ButtonTheme(
+              minWidth: 150.0,
+              height: 40.0,
+              child: RaisedButton(
+                color: Colors.red,
+                onPressed: () async {
+                  if (milestone.id != 0) {
+                    int projectId = milestone.projectId;
+                    await milestoneBloc.deleteMileStoneById(milestone.id);
+                  }
+                  milestoneBloc.milestones.remove(milestone);
+                  setState(() {});
+                  Navigator.of(context).pop();
+                },
+                splashColor: Colors.grey,
+                textColor: Colors.white,
+                padding: const EdgeInsets.all(0.0),
+                shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(5.0)),
+                child: Container(
+                  //margin: const EdgeInsets.all(10.0),
+                  child: Text('Delete'),
+                ),
+              ),
+            ),
+            new FlatButton(
+              child: new Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

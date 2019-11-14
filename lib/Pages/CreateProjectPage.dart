@@ -84,30 +84,37 @@ class _CreateProject extends State<CreateProjectPage> {
                   pinned: false,
                   title: Stack(
                     children: <Widget>[
-                      TextField(
-                        cursorColor: Colors.white,
-                        textAlign: TextAlign.center,
-                        controller: titleController,
-                        style: TextStyle(
-                          // backgroundColor: Colors.transparent,
-                          color: Colors.white,
-                          fontSize: 16.0,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: "Project Title",
-                          border: InputBorder.none,
-                          fillColor: Colors.transparent,
+                      new Positioned(
+                        top: 0,
+                        right: 20,
+                        child: new Container(
+                          width: MediaQuery.of(context).size.width *
+                                        0.8,
+                          child: TextField(
+                            cursorColor: Colors.white,
+                            textAlign: TextAlign.center,
+                            controller: titleController,
+                            style: TextStyle(
+                              // backgroundColor: Colors.transparent,
+                              color: Colors.white,
+                              fontSize: 25.0,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Project Title",
+                              border: InputBorder.none,
+                              fillColor: Colors.transparent,
+                            ),
+                          ),
                         ),
                       ),
                       new Positioned(
-                        bottom: 5,
-                        right: 0,
+                        right: 20,
                         child: new Container(
                           child: new IconButton(
                             color: Colors.white70,
                             icon: new Icon(
                               Icons.image,
-                              size: 40,
+                              size: 55,
                             ),
                             onPressed: getImage,
                           ),

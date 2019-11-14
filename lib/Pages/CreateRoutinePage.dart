@@ -6,13 +6,7 @@ import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
 import 'package:peaky_blinders/Bloc/RoutineSettingBloc.dart';
 import 'package:peaky_blinders/Bloc/TaskBloc.dart';
-import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
-import 'package:peaky_blinders/Models/ProjectDropdown.dart';
-import 'package:peaky_blinders/Models/ProjectTask.dart';
-import 'package:peaky_blinders/Models/RoutineTask.dart';
 import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
-import 'package:peaky_blinders/Models/Task.dart';
-import 'package:peaky_blinders/Repositories/TaskRepository.dart';
 import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
 import 'package:peaky_blinders/widgets/DrawHorizontalLine.dart';
 import 'package:flutter_progress_button/flutter_progress_button.dart';
@@ -35,6 +29,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
   final _scrollController = ScrollController();
   TaskBloc _taskBloc;
   bool exit = true;
+  int _selectionTitle = 0;
+  int _selectionDescription = 0;
 
   Color monday = Colors.white;
   Color tuesday = Colors.white;
@@ -72,6 +68,8 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
               duration: Duration(milliseconds: 600),
               curve: Curves.ease);
         }
+        _selectionTitle = _titleController.selection.baseOffset;
+        _selectionDescription = _descriptionController.selection.baseOffset;
       },
     );
   }
@@ -96,6 +94,10 @@ class _CreateRoutinePageState extends State<CreateRoutinePage> {
       _selectedPoints = _routine.points.toString();
       _titleController.text = _routine.title;
       _descriptionController.text = _routine.description;
+      _titleController.selection =
+          TextSelection.collapsed(offset: _selectionTitle);
+      _descriptionController.selection =
+          TextSelection.collapsed(offset: _selectionDescription);
     }
     setState(() {
       _currentStyle = SystemUiOverlayStyle.dark.copyWith(

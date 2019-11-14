@@ -8,12 +8,8 @@ import 'package:peaky_blinders/Bloc/TaskBloc.dart';
 import 'package:peaky_blinders/Models/MileStoneDropdown.dart';
 import 'package:peaky_blinders/Models/ProjectDropdown.dart';
 import 'package:peaky_blinders/Models/ProjectTask.dart';
-import 'package:peaky_blinders/Models/RoutineTask.dart';
-import 'package:peaky_blinders/Models/Task.dart';
-import 'package:peaky_blinders/Repositories/TaskRepository.dart';
 import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
 import 'package:peaky_blinders/widgets/DrawHorizontalLine.dart';
-import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 import 'package:keyboard_visibility/keyboard_visibility.dart';
 
@@ -35,6 +31,8 @@ class _TaskPageState extends State<TaskPage> {
   TaskBloc _taskBloc;
   bool exit = true;
   ProjectBloc _projectBloc;
+  int _selectionTitle = 0;
+  int _selectionDescription = 0;
 
   _settitleValue() {
     _task.title = _titleController.text;
@@ -64,6 +62,8 @@ class _TaskPageState extends State<TaskPage> {
               duration: Duration(milliseconds: 600),
               curve: Curves.ease);
         }
+        _selectionTitle = _titleController.selection.baseOffset;
+        _selectionDescription = _descriptionController.selection.baseOffset;
       },
     );
   }
@@ -87,6 +87,10 @@ class _TaskPageState extends State<TaskPage> {
     if (_task != null) {
       _selectedPoints = _task.points.toString();
       _titleController.text = _task.title;
+      _titleController.selection =
+          TextSelection.collapsed(offset: _selectionTitle);
+      _descriptionController.selection =
+          TextSelection.collapsed(offset: _selectionDescription);
       _descriptionController.text = _task.description;
       if (_selectedProject == null) {
         _image = _task.runtimeType == ProjectTask
@@ -94,14 +98,13 @@ class _TaskPageState extends State<TaskPage> {
             : "example.jpg";
       }
     }
-    setState(() {
-      _currentStyle = SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.transparent,
-        statusBarBrightness: Brightness.light,
-        statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
-      );
-    });
+
+    _currentStyle = SystemUiOverlayStyle.dark.copyWith(
+      statusBarColor: Colors.transparent,
+      statusBarBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color.fromRGBO(44, 44, 44, 1),
+    );
 
     return AnnotatedRegion(
       value: _currentStyle,

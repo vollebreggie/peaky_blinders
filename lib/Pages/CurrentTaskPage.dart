@@ -85,9 +85,22 @@ class _CurrentTaskPageState extends State<CurrentTaskPage> {
 
   @override
   void dispose() {
-    this._task.projectId = this._selectedProject.id;
-    this._task.milestoneId = this._selectedMileStone.id;
-    TaskRepository.get().updateProjectTask(this._task);
+    if (this._selectedProject != null && _task.runtimeType == ProjectTask) {
+      this._task.projectId = this._selectedProject.id;
+    }
+
+    if (this._selectedMileStone != null && _task.runtimeType == ProjectTask) {
+      this._task.milestoneId = this._selectedMileStone.id;
+    }
+
+    if (_task != null && _task.runtimeType == ProjectTask) {
+      TaskRepository.get().updateProjectTask(this._task);
+    }
+
+    if(_task != null && _task.runtimeType == RoutineTask) {
+      //TODO:: update routineTaskSettings
+    }
+
     _titleController.dispose();
     _descriptionController.dispose();
     _scrollController.dispose();
@@ -161,6 +174,10 @@ class _CurrentTaskPageState extends State<CurrentTaskPage> {
                 child: TextField(
                   maxLines: 1,
                   controller: _titleController,
+                  onChanged: (content) {
+                    _titleController
+                      ..selection = TextSelection.collapsed(offset: _titleController.text.length);
+                  },
                   cursorColor: Colors.white,
                   style: TextStyle(
                       color: Colors.white70,
@@ -230,7 +247,7 @@ class _CurrentTaskPageState extends State<CurrentTaskPage> {
                                       .firstWhere(
                                           (o) => o.id == _task.project.id);
                                   _selectedProject = result;
-                                  
+
                                   milestoneBloc.getDropdownMileStone(
                                       _selectedProject.id);
                                 }
@@ -275,9 +292,13 @@ class _CurrentTaskPageState extends State<CurrentTaskPage> {
                               ),
                               value: _selectedProject,
                               onChanged: (ProjectDropdown value) async {
-                                var project = projectBloc.getProjectsDragAndDrop().firstWhere((p) => p.id == value.id);
-                                (taskBloc.getTasksToday().first as ProjectTask).project = project;
-                                (taskBloc.getNextTask() as ProjectTask).project = project;
+                                var project = projectBloc
+                                    .getProjectsDragAndDrop()
+                                    .firstWhere((p) => p.id == value.id);
+                                (taskBloc.getTasksToday().first as ProjectTask)
+                                    .project = project;
+                                (taskBloc.getNextTask() as ProjectTask)
+                                    .project = project;
                                 _selectedProject = value;
                                 _selectedMileStone = null;
                                 await milestoneBloc

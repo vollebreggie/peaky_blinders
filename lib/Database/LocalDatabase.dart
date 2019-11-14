@@ -149,7 +149,7 @@ class LocalDatabase {
 
   Future<List<ProjectDropdown>> getProjectDropdown() async {
     var db = await _getDb();
-    var result = await db.rawQuery('SELECT * FROM Project');
+    var result = await db.rawQuery('SELECT * FROM Project Order by place asc');
     if (result.length == 0) return null;
     List<ProjectDropdown> projects = [];
 
@@ -162,7 +162,7 @@ class LocalDatabase {
     Future<List<MileStoneDropdown>> getMileStoneDropdown(int projectId) async {
     var db = await _getDb();
     var result = await db.rawQuery(
-        "Select * FROM Milestone WHERE projectId = $projectId ORDER BY place");
+        "Select * FROM Milestone WHERE projectId = $projectId ORDER BY place desc");
     if (result.length == 0) return null;
     List<MileStoneDropdown> milestones = [];
 
@@ -553,7 +553,7 @@ class LocalDatabase {
   /// Get all projects with ids, will return a list with all the projects found
   Future<List<Project>> getProjects() async {
     var db = await _getDb();
-    var result = await db.rawQuery('SELECT * FROM PROJECT ORDER BY id');
+    var result = await db.rawQuery('SELECT * FROM PROJECT ORDER BY place');
 
     List<Project> projects = [];
 

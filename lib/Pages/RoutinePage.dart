@@ -38,6 +38,8 @@ class _RoutinePageState extends State<RoutinePage> {
   TaskBloc _taskBloc;
   bool exit = true;
   ProjectBloc _projectBloc;
+  int _selectionTitle = 0;
+  int _selectionDescription = 0;
 
   _settitleValue() {
     _routine.title = _titleController.text;
@@ -67,6 +69,8 @@ class _RoutinePageState extends State<RoutinePage> {
               duration: Duration(milliseconds: 600),
               curve: Curves.ease);
         }
+        _selectionTitle = _titleController.selection.baseOffset;
+        _selectionDescription = _descriptionController.selection.baseOffset;
       },
     );
   }
@@ -100,6 +104,10 @@ class _RoutinePageState extends State<RoutinePage> {
       _selectedPoints = _routine.points.toString();
       _titleController.text = _routine.title;
       _descriptionController.text = _routine.description;
+      _titleController.selection =
+          TextSelection.collapsed(offset: _selectionTitle);
+      _descriptionController.selection =
+          TextSelection.collapsed(offset: _selectionDescription);
     }
     setState(() {
       _currentStyle = SystemUiOverlayStyle.dark.copyWith(
