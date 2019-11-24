@@ -98,6 +98,14 @@ class RoutineSettingBloc implements BlocBase {
     _routineSetting.skills = selectedSkills;
   }
 
+  Future updateCurrentRoutineSettingImage(image, routineSetting) async {
+    if (image != null) {
+      await RoutineSettingRepository.get().upload(image, routineSetting);
+    } else {
+      await updateRoutineTask(routineSetting);
+    }
+  }
+
   void setAllSkillsByCreateRoutine(Skill skill) {
     if (skills[skills.indexOf(skill)].selected) {
       skills[skills.indexOf(skill)].selected = false;

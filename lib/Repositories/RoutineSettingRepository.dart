@@ -6,6 +6,9 @@ import 'package:peaky_blinders/Models/RoutineTaskSetting.dart';
 import 'package:peaky_blinders/Models/RoutineTaskSettingSkill.dart';
 import 'package:peaky_blinders/Models/Skill.dart';
 import 'package:peaky_blinders/Repositories/BaseRepository.dart';
+import 'package:async/async.dart';
+import 'package:dio/dio.dart';
+import 'package:path/path.dart';
 import 'package:http/http.dart' as http;
 import 'package:peaky_blinders/Repositories/ParsedResponse.dart';
 
@@ -136,6 +139,41 @@ class RoutineSettingRepository extends BaseRepository {
       await database.updateRoutineSetting(parsedResponse.body);
       await syncRoutineSettingSkill((parsedResponse.body as RoutineTaskSetting).id);
     }
+  }
+
+Future upload(File imageFile, RoutineTaskSetting routineTaskSetting) async {
+    // open a bytestream
+    var stream =
+        new http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
+    // get file length
+    var length = await imageFile.length();
+
+    // string to uri
+    var uri = Uri.parse(super.weburl + "api/RoutineTaskSettings/image/${routineTaskSetting.id}");
+
+    // create multipart request
+    var request = new http.MultipartRequest("POST", uri);
+
+    // multipart that takes file
+    var multipartFile = new http.MultipartFile('file', stream, length,
+        filename: basename(imageFile.path));
+
+    // add file to multipart
+    request.files.add(multipartFile);
+
+    // send
+    var response = await request.send();
+
+    // listen for response
+
+    RoutineTaskSetting tempRoutineSetting = RoutineTaskSetting.fromMap(
+        json.decode(await response.stream.transform(utf8.decoder).first));
+    routineTaskSetting.imagePath = tempRoutineSetting.imagePath;
+    await updateRoutineTaskSettingImageLocal(routineTaskSetting);
+  }
+
+  Future updateRoutineTaskSettingImageLocal(RoutineTaskSetting routineTaskSetting) async {
+    await database.updateRoutineSetting(routineTaskSetting);
   }
 
   Future<List<RoutineTaskSetting>> getRoutineSettings() async {

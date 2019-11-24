@@ -5,6 +5,7 @@ class RoutineTaskSetting {
   static final db_id = "id";
   static final db_title = "title";
   static final db_description = "description";
+  static final db_imagePath = "imagePath";
   // static final db_started = "started";
   // static final db_completed = "completed";
   static final db_userId = "userId";
@@ -21,7 +22,7 @@ class RoutineTaskSetting {
   int id, userId, points, place;
   int monday, tuesday, wednesday, thursday, friday, saturday, sunday;
   //DateTime completed, started;
-  String title, description;
+  String title, description, imagePath;
   User user;
   List<Skill> skills;
 
@@ -42,7 +43,8 @@ class RoutineTaskSetting {
       this.friday,
       this.saturday,
       this.sunday,
-      this.skills});
+      this.skills,
+      this.imagePath});
 
   static List<dynamic> skillsToMap(List<Skill> skills) {
     List<dynamic> jsonSkillsMap = [];
@@ -57,6 +59,7 @@ class RoutineTaskSetting {
         title: map[db_title],
         description: map[db_description],
         id: map[db_id],
+        imagePath: map[db_imagePath],
         //started: map[db_started] != null ? DateTime.tryParse(map[db_started]) : null,
         userId: map[db_userId],
         //completed: map[db_completed] != null ? DateTime.tryParse(map[db_completed]) : null,
@@ -81,6 +84,7 @@ class RoutineTaskSetting {
       db_points: points,
       db_place: place,
       db_userId: userId,
+      db_imagePath: imagePath,
       "user": user != null ? user.toMap() : null,
       db_monday: monday,
       db_tuesday: tuesday,

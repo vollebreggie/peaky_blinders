@@ -16,11 +16,12 @@ class ExistingTaskListPage extends StatefulWidget {
 class ExistingTaskListState extends State<ExistingTaskListPage> {
   Widget _appBarTitle = new Text('Search Task..');
   final TextEditingController _filter = new TextEditingController();
+  TaskBloc taskBloc;
   String _searchText = "";
 
   @override
-  Widget build(BuildContext context) {
-    final TaskBloc taskBloc = BlocProvider.of<TaskBloc>(context);
+  void initState() {
+    super.initState();
 
     _filter.addListener(() {
       if (_filter.text.isEmpty) {
@@ -34,6 +35,11 @@ class ExistingTaskListState extends State<ExistingTaskListPage> {
         });
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    taskBloc = BlocProvider.of<TaskBloc>(context);
 
     return Scaffold(
       backgroundColor: Color.fromRGBO(1, 1, 1, 0.83),

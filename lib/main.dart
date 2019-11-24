@@ -21,8 +21,6 @@ import 'package:peaky_blinders/Pages/LoginPage.dart';
 import 'package:peaky_blinders/Repositories/ErrorRepository.dart';
 import 'package:peaky_blinders/Repositories/UserRepository.dart';
 
-
-
 Future<Widget> selectPage(userBloc, projectBloc, taskBloc, routineTaskBloc,
     personalBloc, skillBloc, problemBloc) async {
   Widget _defaultHome = new LoginPage();
@@ -73,12 +71,38 @@ Future initData(
   //skillBloc.syncSkills();
 }
 
+/// Reports [error] along with its [stackTrace] to Sentry.io.
+Future<Null> _reportError(dynamic error, dynamic stackTrace) async {
+  print('Caught error: $error');
+
+  if (error != null) {
+    try {
+      ErrorRepository.get()
+          .sendErrorMessage(error.message, error.stackTrace.toString());
+    } catch (ex) {
+      ErrorRepository.get().sendErrorMessage(error.message, "");
+    }
+  }
+
+  return;
+}
+
 void main() async {
+  FlutterError.onError = (FlutterErrorDetails details) async {
+    try {
+      ErrorRepository.get().sendErrorMessage(
+          details.exception.toString(), details.stack.toString());
+    } catch (ex) {
+      ErrorRepository.get()
+          .sendErrorMessage("something went terrible wrong", "");
+    }
+  };
+
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        systemNavigationBarColor:
-            Colors.black, // navigation bar color
-        statusBarColor: Colors.black, // status bar color
-      ));
+    systemNavigationBarColor: Colors.black, // navigation bar color
+    statusBarColor: Colors.black, // status bar color
+  ));
+  
   runZoned<Future<Null>>(() async {
     //load data, then app
     ProjectBloc projectBloc = new ProjectBloc();
@@ -100,10 +124,7 @@ void main() async {
         skillBloc,
         problemBloc));
   }, onError: (error, stackTrace) async {
-    if (error) {
-      await ErrorRepository.get()
-          .sendErrorMessage(error.toString(), stackTrace);
-    }
+    await _reportError(error, stackTrace);
   });
 }
 

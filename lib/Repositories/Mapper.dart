@@ -1,5 +1,6 @@
 import 'package:peaky_blinders/Models/ChartData.dart';
 import 'package:peaky_blinders/Models/Device.dart';
+import 'package:peaky_blinders/Models/ErrorLog.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
 import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Models/Project.dart';
@@ -49,6 +50,8 @@ class Mapper {
       return RoutineTaskSkill.fromMap(map) as T;
     } else if (T == RoutineTaskSettingSkill) {
       return RoutineTaskSettingSkill.fromMap(map) as T;
+    } else if (T == ErrorLog) {
+      return ErrorLog.fromMap(map) as T;
     }
 
     return null;

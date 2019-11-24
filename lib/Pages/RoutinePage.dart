@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
@@ -29,7 +32,8 @@ class _RoutinePageState extends State<RoutinePage> {
   String _selectedPoints;
   ProjectDropdown _selectedProject;
   MileStoneDropdown _selectedMileStone;
-  String _image;
+  File _imageFile;
+  String image;
   RoutineSettingBloc _routineBloc;
   RoutineTaskSetting _routine;
   final _titleController = TextEditingController();
@@ -132,6 +136,46 @@ class _RoutinePageState extends State<RoutinePage> {
                   expandedHeight: 300.0,
                   floating: false,
                   pinned: false,
+                  title: Stack(
+                    children: <Widget>[
+                      new Positioned(
+                        top: 0,
+                        right: 20,
+                        child: new Container(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          child: TextField(
+                            cursorColor: Colors.white,
+                            textAlign: TextAlign.center,
+                            controller: _titleController,
+                            style: TextStyle(
+                              // backgroundColor: Colors.transparent,
+                              color: Colors.white,
+                              fontSize: 25.0,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Project Title",
+                              border: InputBorder.none,
+                              fillColor: Colors.transparent,
+                            ),
+                          ),
+                        ),
+                      ),
+                      new Positioned(
+                        right: 20,
+                        child: new Container(
+                          child: new IconButton(
+                            color: Colors.white70,
+                            icon: new Icon(
+                              Icons.image,
+                              size: 55,
+                            ),
+                            onPressed: getImage,
+                          ),
+                          //  margin: EdgeInsets.only(left: 280, bottom: 20.0),
+                        ),
+                      ),
+                    ],
+                  ),
                   flexibleSpace: Stack(
                     children: <Widget>[
                       Container(
@@ -142,16 +186,24 @@ class _RoutinePageState extends State<RoutinePage> {
                           clipper: WaveClipperTwo(),
                           shadow: Shadow(blurRadius: 20),
                           child: Container(
-                            child: new CachedNetworkImage(
-                              fit: BoxFit.fill,
-                              height: MediaQuery.of(context).size.height * 0.5,
-                              width: MediaQuery.of(context).size.width,
-                              imageUrl: _taskBloc.getImageFromProject(_image),
-                              placeholder: (context, url) =>
-                                  new CircularProgressIndicator(),
-                              errorWidget: (context, url, error) =>
-                                  new Icon(Icons.error),
-                            ),
+                            child: _imageFile == null
+                                ? new CachedNetworkImage(
+                                    fit: BoxFit.fill,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.4,
+                                    width: MediaQuery.of(context).size.width,
+                                    imageUrl: getImageFromServer(
+                                        context, _routine.imagePath),
+                                    placeholder: (context, url) =>
+                                        new CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        new Icon(Icons.error),
+                                  )
+                                : Image.file(
+                                    _imageFile,
+                                    fit: BoxFit.fill,
+                                    width: MediaQuery.of(context).size.width,
+                                  ),
                             color: Colors.grey[900],
                           ),
                         ),
@@ -433,10 +485,23 @@ class _RoutinePageState extends State<RoutinePage> {
     );
   }
 
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _imageFile = image;
+    });
+  }
+
+  String getImageFromServer(context, image) {
+    final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
+    return projectBloc.getImageFromServer(image);
+  }
+
   Future<bool> navigateBack() async {
     if (exit) {
       exit = false;
-      await _routineBloc.updateRoutineTask(_routine);
+      await _routineBloc.updateCurrentRoutineSettingImage(_imageFile, _routine);
       await _routineBloc.setRoutineSettings();
       return true;
     }

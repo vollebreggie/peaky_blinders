@@ -4,6 +4,7 @@ import 'package:peaky_blinders/Models/User.dart';
 class RoutineTask extends Task {
   static final db_routineTaskSettingId = "routineTaskSettingId";
   static final db_userId = "userId";
+  static final db_imagePath = "imagePath";
 
   int routineTaskSettingId, userId;
   User user;
@@ -18,6 +19,7 @@ class RoutineTask extends Task {
     points,
     priority,
     place,
+    imagePath
 
   }): super(id: id, title: title, description: description, started: started, completed: completed, place: place, points: points);
 
@@ -25,6 +27,7 @@ class RoutineTask extends Task {
     title: map[Task.db_title],
     description: map[Task.db_description],
     id: map[Task.db_id],
+    imagePath: map[db_imagePath],
     started: map[Task.db_started] != null ? DateTime.tryParse(map[Task.db_started]) : null,
     routineTaskSettingId: map[db_routineTaskSettingId],
     completed: map[Task.db_completed] != null ? DateTime.tryParse(map[Task.db_completed]) : null,

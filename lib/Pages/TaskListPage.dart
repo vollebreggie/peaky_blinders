@@ -258,8 +258,13 @@ class _TaskListState extends State<TaskListPage> {
                   setState(() {
                     //taskBloc.getTasksToday();
                   });
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+
+                  if (task.runtimeType == ProjectTask) {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pop();
+                  }
                 },
                 splashColor: Colors.grey,
                 textColor: Colors.white,

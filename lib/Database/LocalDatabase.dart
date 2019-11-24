@@ -65,13 +65,13 @@ class LocalDatabase {
       await db.execute('CREATE UNIQUE INDEX taskId ON ProjectTask (id)');
 
       await db.execute(
-          'CREATE TABLE RoutineTaskSetting (id INTEGER, title TEXT, description TEXT, points INTEGER, place INTEGER, monday INTEGER, tuesday INTEGER, wednesday INTEGER, thursday INTEGER, friday INTEGER, saturday INTEGER, sunday INTEGER, userId INTEGER, FOREIGN KEY(userId) REFERENCES user(id))');
+          'CREATE TABLE RoutineTaskSetting (id INTEGER, title TEXT, description TEXT, imagePath TEXT, points INTEGER, place INTEGER, monday INTEGER, tuesday INTEGER, wednesday INTEGER, thursday INTEGER, friday INTEGER, saturday INTEGER, sunday INTEGER, userId INTEGER, FOREIGN KEY(userId) REFERENCES user(id))');
 
       await db.execute(
           'CREATE UNIQUE INDEX routineSettingId ON RoutineTaskSetting (id)');
 
       await db.execute(
-          'CREATE TABLE RoutineTask (id INTEGER, title TEXT, description TEXT, started DATETIME, completed DATETIME, point INTEGER, place INTEGER, points INTEGER, routineTaskSettingId INTEGER, FOREIGN KEY(routineTaskSettingId) REFERENCES routineTaskSetting(id))');
+          'CREATE TABLE RoutineTask (id INTEGER, title TEXT, description TEXT, started DATETIME, imagePath TEXT, completed DATETIME, point INTEGER, place INTEGER, points INTEGER, routineTaskSettingId INTEGER, FOREIGN KEY(routineTaskSettingId) REFERENCES routineTaskSetting(id))');
 
       await db.execute('CREATE UNIQUE INDEX routineId ON RoutineTask (id)');
 
@@ -948,7 +948,7 @@ class LocalDatabase {
     var db = await _getDb();
     await db.transaction((txn) async {
       int id = await txn.rawInsert(
-          'REPLACE INTO RoutineTaskSetting (${RoutineTaskSetting.db_id}, ${RoutineTaskSetting.db_title}, ${RoutineTaskSetting.db_description}, ${RoutineTaskSetting.db_points}, ${RoutineTaskSetting.db_place}, ${RoutineTaskSetting.db_userId}, ${RoutineTaskSetting.db_monday}, ${RoutineTaskSetting.db_tuesday}, ${RoutineTaskSetting.db_wednesday}, ${RoutineTaskSetting.db_thursday}, ${RoutineTaskSetting.db_friday}, ${RoutineTaskSetting.db_saturday}, ${RoutineTaskSetting.db_sunday}) VALUES("${routineTaskSetting.id}", "${routineTaskSetting.title}", "${routineTaskSetting.description}", "${routineTaskSetting.points}", "${routineTaskSetting.place}", "${routineTaskSetting.userId}", "${routineTaskSetting.monday}", "${routineTaskSetting.tuesday}", "${routineTaskSetting.wednesday}", "${routineTaskSetting.thursday}", "${routineTaskSetting.friday}", "${routineTaskSetting.saturday}", "${routineTaskSetting.sunday}")');
+          'REPLACE INTO RoutineTaskSetting (${RoutineTaskSetting.db_id}, ${RoutineTaskSetting.db_title}, ${RoutineTaskSetting.db_description}, ${RoutineTaskSetting.db_points}, ${RoutineTaskSetting.db_place}, ${RoutineTaskSetting.db_userId}, ${RoutineTaskSetting.db_monday}, ${RoutineTaskSetting.db_tuesday}, ${RoutineTaskSetting.db_wednesday}, ${RoutineTaskSetting.db_thursday}, ${RoutineTaskSetting.db_friday}, ${RoutineTaskSetting.db_saturday}, ${RoutineTaskSetting.db_sunday}, ${RoutineTaskSetting.db_imagePath}) VALUES("${routineTaskSetting.id}", "${routineTaskSetting.title}", "${routineTaskSetting.description}", "${routineTaskSetting.points}", "${routineTaskSetting.place}", "${routineTaskSetting.userId}", "${routineTaskSetting.monday}", "${routineTaskSetting.tuesday}", "${routineTaskSetting.wednesday}", "${routineTaskSetting.thursday}", "${routineTaskSetting.friday}", "${routineTaskSetting.saturday}", "${routineTaskSetting.sunday}", "${routineTaskSetting.imagePath}")');
     });
   }
 
