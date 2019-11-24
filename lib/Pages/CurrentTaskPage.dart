@@ -112,7 +112,6 @@ class _CurrentTaskPageState extends State<CurrentTaskPage> {
     taskBloc = BlocProvider.of<TaskBloc>(context);
     final ProjectBloc projectBloc = BlocProvider.of<ProjectBloc>(context);
     final MileStoneBloc milestoneBloc = BlocProvider.of<MileStoneBloc>(context);
-
     _task = taskBloc.getNextTask();
     if (_task != null) {
       _selectedPoints = _task.points.toString();

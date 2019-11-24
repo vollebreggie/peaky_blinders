@@ -5,12 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
-import 'package:flutter_progress_button/flutter_progress_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:peaky_blinders/Bloc/BlocProvider.dart';
 import 'package:peaky_blinders/Bloc/MileStoneBloc.dart';
 import 'package:peaky_blinders/Bloc/ProjectBloc.dart';
-import 'package:peaky_blinders/Bloc/UserBLoc.dart';
 import 'package:peaky_blinders/Models/MileStone.dart';
 import 'package:peaky_blinders/Models/Problem.dart';
 import 'package:peaky_blinders/Models/User.dart';
@@ -20,7 +18,6 @@ import 'package:flutter_list_drag_and_drop/drag_and_drop_list.dart';
 import 'package:peaky_blinders/widgets/ClipShadowPart.dart';
 import 'package:peaky_blinders/widgets/MileStone.dart';
 import 'package:peaky_blinders/widgets/SelectedUsers.dart';
-import 'package:peaky_blinders/widgets/selectedProblemsCreateWidget.dart';
 import 'package:peaky_blinders/widgets/selectedProblemsWidget.dart';
 
 class ProjectPage extends StatefulWidget {
@@ -252,7 +249,7 @@ class _Project extends State<ProjectPage> {
     if (exit) {
       exit = false;
       projectBloc.getCurrentProject().milestones = mileStoneBloc.milestones;
-      await projectBloc.updateCurrentProject(null);
+      projectBloc.updateCurrentProject(null);
       mileStoneBloc.milestones = null;
       projectBloc.selectedProjectTask = null;
       projectBloc.setCurrentProject(null);

@@ -87,11 +87,11 @@ class _TaskPageState extends State<TaskPage> {
     if (_task != null) {
       _selectedPoints = _task.points.toString();
       _titleController.text = _task.title;
+      _descriptionController.text = _task.description;
       _titleController.selection =
           TextSelection.collapsed(offset: _selectionTitle);
       _descriptionController.selection =
           TextSelection.collapsed(offset: _selectionDescription);
-      _descriptionController.text = _task.description;
       if (_selectedProject == null) {
         _image = _task.runtimeType == ProjectTask
             ? _task.project.imagePathServer
@@ -605,8 +605,8 @@ class _TaskPageState extends State<TaskPage> {
       } else {
         await _taskBloc.updateProjectTask(_taskBloc.getProjectTask());
         _taskBloc.setProjectTask(null);
-        await _taskBloc.setTasksForToday();
-        await _taskBloc.setNextTask();
+        _taskBloc.setTasksForToday();
+        _taskBloc.setNextTask();
       }
       return true;
     }
